@@ -1,0 +1,54 @@
+{
+	"mysql": {
+		"name": "mysql",
+		"displayName": "Joyful MySQL",
+		"description": "A MySQL server for MCP",
+		"docsUrl": "https://github.com/breven217/joyfulsql_mcp",
+		"mcpConfig": {
+			"command": "docker",
+			"disabledTools": [],
+			"args": [
+				"run",
+				"--rm",
+				"-i",
+				"--env-file",
+				"~/.mcp/mysql.env",
+				"ghcr.io/breven217/joyfulsql_mcp:latest"
+			]
+		},
+		"env": {
+			"LOCAL_HOST": "app.bamboolocal.com",
+			"LOCAL_USER": "web",
+			"LOCAL_PASSWORD": "password",
+			"LOCAL_PORT": "3396",
+			"ODI_HOST": "127.0.0.1",
+			"ODI_USER": "web",
+			"ODI_PASSWORD": "",
+			"ODI_PORT": "3306",
+			"ODI_SSH_PORT": "22",
+			"ODI_SSH_KEY": "~/.ssh/id_rsa",
+			"WRITE_ACCESS": "false"
+		}
+	},
+	"github": {
+		"name": "github",
+		"displayName": "GitHub",
+		"description": "A GitHub server for MCP",
+		"docsUrl": "https://github.com/github/github-mcp-server",
+		"mcpConfig": {
+			"command": "docker",
+			"disabledTools": [],
+			"args": [
+				"run",
+				"-i",
+				"--rm",
+				"--env-file",
+				"~/.mcp/github.env",
+				"ghcr.io/github/github-mcp-server"
+			]
+		},
+		"env": {
+			"GITHUB_PERSONAL_ACCESS_TOKEN": ""
+		}
+	}
+}

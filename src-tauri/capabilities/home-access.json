@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "home-access",
+  "description": "Capability for accessing files in the home directory",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "fs:default",
+    "fs:allow-exists",
+    "fs:allow-read-file",
+    "fs:allow-read-text-file",
+    "fs:allow-write-file",
+    "fs:allow-write-text-file",
+    "fs:allow-remove",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$HOME/.codeium/windsurf/**" },
+        { "path": "$HOME/repos/MCP-JoyPack/**" },
+        { "path": "$HOME/.mcp/**" }
+      ]
+    }
+  ]
+}

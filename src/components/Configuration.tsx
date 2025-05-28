@@ -1,0 +1,156 @@
+import { useState, useEffect } from 'react';
+import { ServerConfig } from '../types';
+import '../styles/Configuration.css';
+import { readEnvFile } from '../fileFunctions';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
+interface ConfigurationProps {
+  server: ServerConfig;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (envVars: Record<string, string>) => void;
+  isInstall?: boolean;
+}
+
+const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false }: ConfigurationProps) => {
+  const [envVars, setEnvVars] = useState<Record<string, string>>({});
+  const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Initialize env vars from server config
+    if (server.installed) {
+      readEnvFile(server).then(envVars => {
+        setEnvVars(envVars || {});
+      });
+    } else if (server && server.env) {
+      setEnvVars({ ...server.env });
+    }
+
+    // Add scroll lock to body when modal is open
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Cleanup function to remove scroll lock when component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [server, isOpen]);
+
+  const handleInputChange = (key: string, value: string) => {
+    setEnvVars(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const toggleFieldVisibility = (key: string) => {
+    setVisibleFields(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const shouldHideField = (key: string) => {
+    return key.toLowerCase().includes('token')
+      || key.toLowerCase().includes('password')
+      || key.toLowerCase().includes('key');
+  };
+
+  const isBooleanValue = (value: string | undefined) => {
+    return value === 'true' || value === 'false';
+  };
+
+  const handleToggleChange = (key: string, checked: boolean) => {
+    setEnvVars(prev => ({
+      ...prev,
+      [key]: checked ? 'true' : 'false'
+    }));
+  };
+
+  if (!isOpen) {
+    // Ensure scroll is enabled when modal is closed
+    document.body.style.overflow = '';
+    return null;
+  }
+
+  return (
+    <div className="modal-overlay">
+      <div className="config-modal">
+        <div className="modal-header">
+          <h2>{isInstall ? `Install ${server.displayName}` : `Configure ${server.displayName}`}</h2>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-body">
+          <p className="config-description">
+            {isInstall
+              ? `Configure environment variables to install ${server.displayName}`
+              : `Update environment variables for ${server.displayName}`}
+          </p>
+
+          <div className="env-vars-container">
+            {Object.entries(server.env).map(([key, defaultValue]) => (
+              <div key={key} className="env-var-input">
+                {isBooleanValue(envVars[key] || defaultValue as string) ? (
+                  <>
+                    <label htmlFor={`toggle-${key}`}>{key}:</label>
+                    <div className="toggle-container">
+                      <label className="toggle-switch">
+                        <input
+                          id={`toggle-${key}`}
+                          type="checkbox"
+                          checked={(envVars[key] || defaultValue) === 'true'}
+                          onChange={(e) => handleToggleChange(key, e.target.checked)}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <label htmlFor={`env-${key}`}>{key}:</label>
+                    <div className="input-container">
+                      <input
+                        id={`env-${key}`}
+                        type={
+                          shouldHideField(key)
+                            ? visibleFields[key] ? 'text' : 'password'
+                            : 'text'
+                        }
+                        value={envVars[key] || ''}
+                        onChange={(e) => handleInputChange(key, e.target.value)}
+                        placeholder={defaultValue || ''}
+                      />
+                      {shouldHideField(key) && (
+                        <button
+                          type="button"
+                          className="toggle-visibility-button"
+                          onClick={() => toggleFieldVisibility(key)}
+                          aria-label={visibleFields[key] ? 'Hide password' : 'Show password'}
+                        >
+                          {visibleFields[key] ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button className="cancel-button" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="save-button" onClick={() => onSave(envVars)}>
+            {isInstall ? 'Install' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Configuration;
