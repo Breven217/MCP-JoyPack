@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import eventBus, { InstallationStep } from '../utils/eventBus';
-import '../styles/InstallationProgress.css';
+import styles from '../styles/InstallationProgress.module.css';
 import { FaCheckCircle, FaExclamationCircle, FaSpinner } from 'react-icons/fa';
 
 interface InstallationProgressProps {
@@ -55,44 +55,50 @@ const InstallationProgress: React.FC<InstallationProgressProps> = ({ serverName 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'complete':
-        return <FaCheckCircle className="status-icon success" />;
+        return <FaCheckCircle className={`${styles.statusIcon} ${styles.success}`} />;
       case 'error':
-        return <FaExclamationCircle className="status-icon error" />;
+        return <FaExclamationCircle className={`${styles.statusIcon} ${styles.error}`} />;
       case 'in-progress':
-        return <FaSpinner className="status-icon spinner" />;
+        return <FaSpinner className={`${styles.statusIcon} ${styles.spinner}`} />;
       case 'pending':
-        return <div className="status-icon-placeholder" />;
+        return <div className={styles.statusIconPlaceholder} />;
       default:
-        return <div className="status-icon-placeholder" />;
+        return <div className={styles.statusIconPlaceholder} />;
     }
   };
 
   return (
-    <div className="installation-progress">
+    <div className={styles.installationProgress}>
       {/* No header button needed anymore since we're not collapsing */}
       
-      <div className="progress-steps expanded">
+      <div className={`${styles.progressSteps} ${styles.expanded}`}>
         {!hasSteps || steps.length === 0 ? (
-          <div className="progress-step pending">
-            <div className="status-icon-placeholder" />
-            <div className="step-content">
-              <div className="step-name">Preparing installation...</div>
-              <div className="step-message">Setting up environment...</div>
+          <div className={`${styles.progressStep} ${styles.pending}`}>
+            <div className={styles.statusIconPlaceholder} />
+            <div className={styles.stepContent}>
+              <div className={styles.stepName}>Preparing installation...</div>
+              <div className={styles.stepMessage}>Setting up environment...</div>
             </div>
           </div>
         ) : (
-          steps.map((step, index) => (
-            <div 
-              key={index} 
-              className={`progress-step ${step.status} ${activeStep === step.step ? 'active' : ''}`}
-            >
-              {getStatusIcon(step.status)}
-              <div className="step-content">
-                <div className="step-name">{step.step}</div>
-                {step.message && <div className="step-message">{step.message}</div>}
+          steps.map((step, index) => {
+            const stepStatusClass = step.status === 'in-progress' ? styles.inProgress : 
+                                   step.status === 'complete' ? styles.complete : 
+                                   step.status === 'error' ? styles.error : '';
+            
+            return (
+              <div 
+                key={index} 
+                className={`${styles.progressStep} ${stepStatusClass} ${activeStep === step.step ? styles.active : ''}`}
+              >
+                {getStatusIcon(step.status)}
+                <div className={styles.stepContent}>
+                  <div className={styles.stepName}>{step.step}</div>
+                  {step.message && <div className={styles.stepMessage}>{step.message}</div>}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

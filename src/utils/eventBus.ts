@@ -1,3 +1,5 @@
+import { EventType, EventTypes } from './eventTypes';
+
 type EventCallback = (...args: any[]) => void;
 
 interface EventMap {
@@ -14,7 +16,7 @@ export type InstallationStep = {
 class EventBus {
   private events: EventMap = {};
 
-  on(event: string, callback: EventCallback) {
+  on(event: EventType, callback: EventCallback) {
     if (!this.events[event]) {
       this.events[event] = [];
     }
@@ -22,19 +24,19 @@ class EventBus {
     return () => this.off(event, callback);
   }
 
-  off(event: string, callback: EventCallback) {
+  off(event: EventType, callback: EventCallback) {
     if (!this.events[event]) return;
     this.events[event] = this.events[event].filter(cb => cb !== callback);
   }
 
-  emit(event: string, ...args: any[]) {
+  emit(event: EventType, ...args: any[]) {
     if (!this.events[event]) return;
     this.events[event].forEach(callback => callback(...args));
   }
 
   // Installation specific methods
   updateInstallationProgress(data: InstallationStep) {
-    this.emit('installation-progress', data);
+    this.emit(EventTypes.INSTALLATION_PROGRESS, data);
   }
 }
 

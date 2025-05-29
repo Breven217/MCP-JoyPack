@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
-import { EnvType, EnvVariable, ServerConfig } from '../types';
+import { useEffect, useReducer, useCallback } from 'react';
+import { EnvVariable, ServerConfig } from '../types';
 import '../styles/Configuration.css';
 import { readEnvFile } from '../setups/fileFunctions';
-import { FaEye, FaEyeSlash, FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
 import { checkPrerequisite } from '../setups/prerequisites';
 import InstallationProgress from './InstallationProgress';
 import eventBus from '../utils/eventBus';
+import { configReducer, ConfigState } from '../reducers/configurationReducer';
+import EnvironmentVariableForm from './EnvironmentVariableForm';
+import ModalFooter from './ModalFooter';
 
 interface ConfigurationProps {
   server: ServerConfig;
@@ -18,20 +20,25 @@ interface ConfigurationProps {
 }
 
 const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false, doneProcessing = false }: ConfigurationProps) => {
-  const [envVars, setEnvVars] = useState<Record<string, EnvVariable>>({});
-  const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
-  const [prerequisitesMet, setPrerequisitesMet] = useState<string | null>(null);
-  const [showProgress, setShowProgress] = useState<boolean>(false);
+  // Initialize state with reducer
+  const initialState: ConfigState = {
+    envVars: {},
+    visibleFields: {},
+    prerequisitesMet: null,
+    showProgress: false
+  };
+  
+  const [state, dispatch] = useReducer(configReducer, initialState);
   
 
   useEffect(() => {
     // Initialize env vars from server config
     if (server.installed) {
       readEnvFile(server).then(envVars => {
-        setEnvVars({ ...envVars });
+        dispatch({ type: 'SET_ENV_VARS', envVars: { ...envVars } });
       });
     } else if (server && server.env) {
-      setEnvVars({ ...server.env });
+      dispatch({ type: 'SET_ENV_VARS', envVars: { ...server.env } });
     }
 
     // Add scroll lock to body when modal is open
@@ -45,35 +52,22 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
     };
   }, [server, isOpen]);
 
-  const handleInputChange = (key: string, value: string) => {
-    // Update the env vars state by finding the env var with the matching key and updating the "value" property
-    setEnvVars(prev => ({
-      ...prev,
-      [key]: { ...prev[key], value }
-    }));
-  };
+  // Use useCallback to memoize event handlers
+  const handleInputChange = useCallback((key: string, value: string) => {
+    dispatch({ type: 'UPDATE_ENV_VAR', key, value });
+  }, [dispatch]);
 
-  const toggleFieldVisibility = (key: string) => {
-    setVisibleFields(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
+  const toggleFieldVisibility = useCallback((key: string) => {
+    dispatch({ type: 'TOGGLE_FIELD_VISIBILITY', key });
+  }, [dispatch]);
 
-  const isBooleanValue = (value: string | undefined) => {
-    return value === 'true' || value === 'false';
-  };
+  const handleToggleChange = useCallback((key: string, checked: boolean) => {
+    dispatch({ type: 'TOGGLE_BOOLEAN_VALUE', key, checked });
+  }, [dispatch]);
 
-  const handleToggleChange = (key: string, checked: boolean) => {
-    setEnvVars(prev => ({
-      ...prev,
-      [key]: { ...prev[key], value: checked ? 'true' : 'false' }
-    }));
-  };
-
-  const handleSave = async () => {
-    // Show installation progress
-    setShowProgress(true);
+  const handleSave = useCallback(async () => {
+    // Start installation process
+    dispatch({ type: 'START_INSTALLATION' });
     
     // Emit initial installation event
     eventBus.updateInstallationProgress({
@@ -86,102 +80,15 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
     // Check prerequisites
     const message = await checkPrerequisite(server);
     if (message) {
-      setPrerequisitesMet(message);
-      setShowProgress(false);
+      dispatch({ type: 'PREREQUISITES_FAILED', message });
       return;
     }
 
     // Save environment variables and continue with installation
-    onSave(envVars);
-  };
+    onSave(state.envVars);
+  }, [dispatch, server, onSave, state.envVars]);
 
-  const renderEnvVars = () => {
-    return Object.entries(server.env).map(([key]) => (
-      <div key={key} className="env-var-input">
-        {isBooleanValue(envVars[key]?.value) ? (
-          <>
-            <div className="env-var-label-container">
-              <label htmlFor={`toggle-${key}`}>{key}:</label>
-              {envVars[key]?.docsUrl && (
-                <a 
-                  href={envVars[key]?.docsUrl} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="docs-link"
-                  title="Open documentation"
-                >
-                  <FaExternalLinkAlt />
-                </a>
-              )}
-            </div>
-            <div className="toggle-container">
-              <label className="toggle-switch">
-                <input
-                  id={`toggle-${key}`}
-                  type="checkbox"
-                  checked={(envVars[key]?.value) === 'true'}
-                  onChange={(e) => handleToggleChange(key, e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            {envVars[key]?.description && (
-              <div className="env-var-description">
-                <FaInfoCircle className="description-icon" />
-                <span>{envVars[key]?.description}</span>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="env-var-label-container">
-              <label htmlFor={`env-${key}`}>{key}:</label>
-              {envVars[key]?.docsUrl && (
-                <a 
-                  href={envVars[key]?.docsUrl} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="docs-link"
-                  title="Open documentation"
-                >
-                  <FaExternalLinkAlt />
-                </a>
-              )}
-            </div>
-            <div className="input-container">
-              <input
-                id={`env-${key}`}
-                type={
-                  envVars[key]?.type === EnvType.Password
-                    ? visibleFields[key] ? 'text' : 'password'
-                    : 'text'
-                }
-                value={envVars[key]?.value || ''}
-                onChange={(e) => handleInputChange(key, e.target.value)}
-                placeholder={envVars[key]?.value || ''}
-              />
-              {envVars[key]?.type === EnvType.Password && (
-                <button
-                  type="button"
-                  className="toggle-visibility-button"
-                  onClick={() => toggleFieldVisibility(key)}
-                  aria-label={visibleFields[key] ? 'Hide password' : 'Show password'}
-                >
-                  {visibleFields[key] ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              )}
-            </div>
-            {envVars[key]?.description && (
-              <div className="env-var-description">
-                <FaInfoCircle className="description-icon" />
-                <span>{envVars[key]?.description}</span>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    ));
-  };
+
 
   if (!isOpen) {
     // Ensure scroll is enabled when modal is closed
@@ -198,17 +105,21 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
         </div>
 
         <div className="config-content">
-          {prerequisitesMet && (
+          {state.prerequisitesMet && (
             <div className="error-message">
-              {prerequisitesMet}
+              {state.prerequisitesMet}
             </div>
           )}
           
-          {!showProgress ? (
-            <div className="env-vars-section">
-              <h3 className="section-title">Environment Variables</h3>
-              <div className="env-vars-container">{renderEnvVars()}</div>
-            </div>
+          {!state.showProgress ? (
+            <EnvironmentVariableForm
+              server={server}
+              envVars={state.envVars}
+              visibleFields={state.visibleFields}
+              onInputChange={handleInputChange}
+              onToggleChange={handleToggleChange}
+              onToggleVisibility={toggleFieldVisibility}
+            />
           ) : (
             <div className="installation-section">
               <h3 className="section-title">Installation Progress</h3>
@@ -217,31 +128,14 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
           )}
         </div>
 
-        <div className="modal-footer">
-          {doneProcessing ? (
-            <button className="cancel-button" onClick={onClose} disabled={isLoading}>
-              Close
-            </button>
-          ) : (
-            <>
-            {!isLoading && (
-              <button className="cancel-button" onClick={onClose} disabled={isLoading}>
-                Cancel
-              </button>
-            )}
-            <button className="save-button" onClick={handleSave} disabled={isLoading || prerequisitesMet !== null}>
-            {isLoading ? (
-              <>
-                <span className="spinner"></span>
-                {isInstall ? 'Installing...' : 'Saving...'}
-              </>
-            ) : (
-              isInstall ? 'Install' : 'Save'
-            )}
-          </button>
-          </>
-          )}
-        </div>
+        <ModalFooter
+          isLoading={isLoading}
+          doneProcessing={doneProcessing}
+          isInstall={isInstall}
+          disabled={isLoading || state.prerequisitesMet !== null}
+          onSave={handleSave}
+          onClose={onClose}
+        />
       </div>
     </div>
   );

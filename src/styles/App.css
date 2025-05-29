@@ -1,7 +1,11 @@
+/* Import design tokens */
+@import './tokens.css';
+
 /* Global styles */
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
+  font-family: var(--font-family);
 }
 
 *:focus {

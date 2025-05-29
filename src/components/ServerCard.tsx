@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { EnvVariable, ServerConfig } from "../types";
-import { saveServer, uninstallServer, toggleServerEnabled } from "../setups/fileFunctions";
 import Configuration from "./Configuration";
-import { ShowNotificationFn, showRestartCascadeNotification } from "../utils/notificationUtils";
+import { ShowNotificationFn } from "../utils/notificationUtils";
 import { FaInfoCircle } from "react-icons/fa";
 import Tooltip from "./Tooltip";
+import { useServerActions } from "../hooks/useServerActions";
 
 interface ServerCardProps {
 	server: ServerConfig;
@@ -14,84 +14,62 @@ interface ServerCardProps {
 
 export default function ServerCard({ server, onRefresh, showNotification }: ServerCardProps) {
 	const [isConfigOpen, setIsConfigOpen] = useState(false);
-	const [isProcessing, setIsProcessing] = useState(false);
-	const [doneProcessing, setDoneProcessing] = useState(false);
 	const [tooltipVisible, setTooltipVisible] = useState(false);
 	const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 	const infoIconRef = useRef<HTMLDivElement>(null);
 	
-	const handleConfigClick = () => {
+	// Use the custom hook for server actions
+	const {
+		isProcessing,
+		doneProcessing,
+		saveServerConfig,
+		uninstallServerConfig,
+		toggleServerState,
+		resetState
+	} = useServerActions(server, onRefresh, showNotification);
+	
+	// Memoize the server status for better performance
+	const serverStatus = useMemo(() => {
+		return {
+			isInstalled: server.installed,
+			isDisabled: server.mcpConfig?.disabled,
+			statusClass: server.installed ? 'installed' : 'available',
+			statusIndicatorClass: server.mcpConfig?.disabled ? 'status-disabled' : 'status-enabled',
+			statusTitle: server.mcpConfig?.disabled ? 'Server disabled - Click to enable' : 'Server enabled - Click to disable'
+		};
+	}, [server.installed, server.mcpConfig?.disabled]);
+	
+	// Use useCallback for event handlers to prevent unnecessary re-renders
+	const handleConfigClick = useCallback(() => {
 		setIsConfigOpen(true);
-	};
+	}, []);
 	
-	const handleConfigClose = () => {
+	const handleConfigClose = useCallback(() => {
 		setIsConfigOpen(false);
-		setDoneProcessing(false);
-		setIsProcessing(false);
+		resetState();
 		onRefresh();
-	};
+	}, [resetState, onRefresh]);
 	
-	const handleConfigSave = async (envVars: Record<string, EnvVariable>) => {
-		setIsProcessing(true);
-		
-		try {
-			await saveServer(server, envVars);
-			
-			// Show notification to restart Cascade
-			showRestartCascadeNotification(showNotification);
-		} catch (error) {
-			console.error('Error saving configuration:', error);
-			showNotification('Error saving configuration', 'error');
-		} finally {
-			setIsProcessing(false);
-			setDoneProcessing(true);
-		}
-	};
+	const handleConfigSave = useCallback(async (envVars: Record<string, EnvVariable>) => {
+		await saveServerConfig(envVars);
+	}, [saveServerConfig]);
 	
-	const handleUninstall = async () => {
-		setIsProcessing(true);
-		
-		try {
-			await uninstallServer(server);
-			
-			// Show notification to restart Cascade
-			showRestartCascadeNotification(showNotification);
-			
-			onRefresh();
-		} catch (error) {
-			console.error('Error uninstalling server:', error);
-			showNotification('Error uninstalling server', 'error');
-		} finally {
-			setIsProcessing(false);
-		}
-	};
+	const handleUninstall = useCallback(async () => {
+		await uninstallServerConfig();
+	}, [uninstallServerConfig]);
 	
-	const handleToggleEnabled = async () => {
-		setIsProcessing(true);
-		
-		try {
-			await toggleServerEnabled(server);
-			
-			// Show notification to restart Cascade
-			showRestartCascadeNotification(showNotification);
-			
-			onRefresh();
-		} catch (error) {
-			console.error('Error toggling server state:', error);
-			showNotification('Error toggling server state', 'error');
-		} finally {
-			setIsProcessing(false);
-		}
-	};
+	const handleToggleEnabled = useCallback(async () => {
+		await toggleServerState();
+	}, [toggleServerState]);
 	
 	return (
 		<>
-			<div key={server.name} className={`server-card ${server.installed ? 'installed' : 'available'}`}>
-				{server.installed && (
+			<div key={server.name} className={`server-card ${serverStatus.statusClass}`}>
+				{serverStatus.isInstalled && (
 					<span 
-						className={`status-indicator ${server.mcpConfig?.disabled ? 'status-disabled' : 'status-enabled'}`}
+						className={`status-indicator ${serverStatus.statusIndicatorClass}`}
 						onClick={handleToggleEnabled}
-						title={server.mcpConfig?.disabled ? 'Server disabled - Click to enable' : 'Server enabled - Click to disable'}
+						title={serverStatus.statusTitle}
 					></span>
 				)}
 				{/* Removed Available indicator */}
