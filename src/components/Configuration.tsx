@@ -3,6 +3,7 @@ import { EnvType, EnvVariable, ServerConfig } from '../types';
 import '../styles/Configuration.css';
 import { readEnvFile } from '../setups/fileFunctions';
 import { FaEye, FaEyeSlash, FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
+import { checkPrerequisite } from '../setups/local';
 
 interface ConfigurationProps {
   server: ServerConfig;
@@ -16,6 +17,8 @@ interface ConfigurationProps {
 const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false }: ConfigurationProps) => {
   const [envVars, setEnvVars] = useState<Record<string, EnvVariable>>({});
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+  const [prerequisitesMet, setPrerequisitesMet] = useState<string | null>(null);
+  
 
   useEffect(() => {
     // Initialize env vars from server config
@@ -25,6 +28,9 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
       });
     } else if (server && server.env) {
       setEnvVars({ ...server.env });
+      checkPrerequisite(server).then(message => {
+        setPrerequisitesMet(message);
+      });
     }
 
     // Add scroll lock to body when modal is open
@@ -175,10 +181,15 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
         </div>
 
         <div className="modal-footer">
+          {prerequisitesMet && (
+            <div className="prerequisite-error">
+              {prerequisitesMet}
+            </div>
+          )}
           <button className="cancel-button" onClick={onClose} disabled={isLoading}>
             Cancel
           </button>
-          <button className="save-button" onClick={() => onSave(envVars)} disabled={isLoading}>
+          <button className="save-button" onClick={() => onSave(envVars)} disabled={isLoading || !!prerequisitesMet}>
             {isLoading ? (
               <>
                 <span className="spinner"></span>

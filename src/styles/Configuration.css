@@ -323,4 +323,15 @@ button:disabled {
   transform: translateX(20px);
 }
 
+.prerequisite-error {
+  display: flex;
+  align-items: center;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-right: auto;
+  font-size: 0.85rem;
+}
 

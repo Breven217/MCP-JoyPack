@@ -9,9 +9,7 @@ export const setupLocal = async (server: ServerConfig) => {
   try {
 	const repoPath = await cloneLocalRepo(server);
 
-
 	if (server.localSetup.command === CommandType.Node) {
-		await installNPM();
 	//   // Install dependencies
 	//   const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
 	//   await installCommand.execute().catch((error) => {
@@ -97,16 +95,25 @@ ${server.localSetup.command} ${repoPath}/${server.localSetup.entryPoint}`;
 }
 }
 
-const installNPM = async () => {
-	//check if npm is already installed
-	const npmCommand = Command.create('which', ['npm']);
-	const npmPath = await npmCommand.execute().then((result) => {
-		return result;
+export const checkPrerequisite = async (server: ServerConfig): Promise<string | null> => {
+	if (!server.localSetup?.command) {
+		return null;
+	}
+
+	const packageName = server.localSetup.command === CommandType.Node ? 'npm' : 'uv';
+
+	const command = Command.create('which', [packageName]);
+	let installed = false;
+	await command.execute().then((result) => {
+		if (result.code === 0) {
+			installed = true;
+		}
 	}).catch(() => {
 		return null;
 	});
-	if (npmPath) {
-		console.log('npm is already installed');
-		return;
+	if (installed) {
+		console.log(`${packageName} is already installed`);
+		return null;
 	}
+	return `${packageName} is not installed, please install it before continuing`;
 }
