@@ -70,6 +70,33 @@
               "validator": "\\S+"
             }
           ]
+        },
+        {
+          "name": "which",
+          "cmd": "which",
+          "args": [
+            {
+              "validator": "\\S+"
+            }
+          ]
+        },
+        {
+          "name": "install-brew",
+          "cmd": "/bin/bash",
+          "args": [
+            "-c",
+            "\"NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+          ]
+        },
+        {
+          "name": "install-via-brew",
+          "cmd": "brew",
+          "args": [
+            "install",
+            {
+              "validator": "\\S+"
+            }
+          ]
         }
       ]
     }

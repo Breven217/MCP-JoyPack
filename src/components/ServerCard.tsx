@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { EnvVariable, ServerConfig } from "../types";
-import { saveServer, uninstallServer, toggleServerEnabled } from "../fileFunctions";
+import { saveServer, uninstallServer, toggleServerEnabled } from "../setups/fileFunctions";
 import Configuration from "./Configuration";
 import { ShowNotificationFn, showRestartCascadeNotification } from "../utils/notificationUtils";
 import { FaInfoCircle } from "react-icons/fa";

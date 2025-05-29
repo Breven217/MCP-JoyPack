@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { EnvType, EnvVariable, ServerConfig } from '../types';
 import '../styles/Configuration.css';
-import { readEnvFile } from '../fileFunctions';
+import { readEnvFile } from '../setups/fileFunctions';
 import { FaEye, FaEyeSlash, FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
 
 interface ConfigurationProps {
