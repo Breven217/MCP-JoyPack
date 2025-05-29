@@ -2,6 +2,8 @@ import { readTextFile, writeTextFile, BaseDirectory, remove, exists } from '@tau
 import { EnvVariable, ServerConfig, ServersObject } from '../types'; 
 import { setupLocal, tearDownLocalRepo } from './local';
 import { CONFIG_PATH, ENV_PATH, HOME_PATH, REMOTE_CONFIG_URL } from './config';
+import { bambooBuild } from './bamboohr';
+import eventBus from '../utils/eventBus';
 
 export const getServers = async (): Promise<ServersObject | null> => {
   try {
@@ -96,6 +98,21 @@ export const saveServer = async (server: ServerConfig, envVars: Record<string, E
 
 const installServer = async (server: ServerConfig) => {
   try {
+    // For BambooHR server, use the specialized build function
+    if (server.name === 'mcp-bamboohr') {
+      await bambooBuild(server);
+    } else if (server.localSetup) {
+      await setupLocal(server);
+    }
+
+    // Update progress
+    eventBus.updateInstallationProgress({
+      server: server.name,
+      step: 'MCP Configuration',
+      status: 'in-progress',
+      message: 'Saving MCP configuration...',
+    });
+
     // Make sure the mcp config file exists
     const configExists = await exists(CONFIG_PATH, { baseDir: BaseDirectory.Home });
     if (!configExists) {
@@ -119,10 +136,14 @@ const installServer = async (server: ServerConfig) => {
     // Write updated config
     await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
 
-    // Install repo if specified
-    if (server.localSetup?.repo) {
-      await setupLocal(server);
-    }
+    // Update progress
+    eventBus.updateInstallationProgress({
+      server: server.name,
+      step: 'MCP Configuration',
+      status: 'complete',
+      message: 'MCP configuration saved successfully',
+    });
+
     return true;
   } catch (error) {
     console.error('Error installing server:', error);
@@ -144,7 +165,7 @@ export const uninstallServer = async (server: ServerConfig) => {
     await deleteEnvFile(server);
 
     // Tear down repo if specified
-    if (server.localSetup?.repo) {
+    if (server.localSetup) {
       await tearDownLocalRepo(server);
     }
     

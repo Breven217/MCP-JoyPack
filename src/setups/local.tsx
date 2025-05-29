@@ -8,21 +8,15 @@ import { createAppError } from '../utils/errorTypes';
 
 export const setupLocal = async (server: ServerConfig) => {
   try {
-    const repoPath = await cloneLocalRepo(server);
+	const repoPath = await cloneLocalRepo(server);
 
-    if (server.localSetup?.command === CommandType.Node) {
-      await npmBuild(server, repoPath);
-    } else if (server.localSetup?.command === CommandType.UV) {
-      // For BambooHR server, use the specialized build function
-      if (server.name === 'mcp-bamboohr') {
-        await bambooBuild(server);
-      } else {
-        await uvBuild(server, repoPath);
-      }
-    }
-
-    await createEnvWrapper(server);
-    return repoPath;
+	if (server.localSetup?.command === CommandType.Node) {
+		await npmBuild(server, repoPath);
+	} else if (server.localSetup?.command === CommandType.UV) {
+		await uvBuild(server, repoPath);
+	}
+	await createEnvWrapper(server);
+	return repoPath;
   } catch (error) {
     console.error('Error setting up local repository:', error);
     throw error;
@@ -92,6 +86,14 @@ const npmBuild = async (server: ServerConfig, repoPath: string): Promise<void> =
     installCommand,
     'NPM dependencies installed successfully'
   );
+
+  await executeInstallStep(
+	server,
+	"Build NPM",
+	"Building NPM dependencies...",
+	Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']),
+	"NPM dependencies built successfully"
+  )
 }
 
 /**
@@ -100,26 +102,15 @@ const npmBuild = async (server: ServerConfig, repoPath: string): Promise<void> =
  * @param repoPath Path to the repository
  */
 const uvBuild = async (server: ServerConfig, repoPath: string): Promise<void> => {
-  const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
-  await executeInstallStep(
-    server,
-    'Dependencies Installation',
-    'Syncing Python dependencies...',
-    syncCommand,
-    'Python dependencies synced successfully'
-  );
-}
-
-/**
- * Build BambooHR dependencies and set up environment
- * @param server Server configuration
- */
-const bambooBuild = async (server: ServerConfig): Promise<void> => {
-	// TODO
-	// git fetch and pull ~/repos/setup
-	// source ~/repos/setup/helpers.sh && vault_sync_env shared-product-development/dev_exports
-	//source ~/.zshrc # this one is important, the previous step wrote new exports into your zshrc that need to be run into this shell
-	//uv tool install mcp-bamboohr 
+	//TODO test
+	const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
+	await executeInstallStep(
+		server,
+		'Dependencies Installation',
+		'Syncing Python dependencies...',
+		syncCommand,
+		'Python dependencies synced successfully'
+	);
 }
 
 /**

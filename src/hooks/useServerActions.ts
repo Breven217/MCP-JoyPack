@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { EnvVariable, ServerConfig } from '../types';
-import { saveServer, uninstallServer, toggleServerEnabled } from '../setups/fileFunctions';
+import { saveServer, uninstallServer, toggleServerEnabled } from '../setups/configs';
 import { ShowNotificationFn, showRestartCascadeNotification } from '../utils/notificationUtils';
 import { createAppError } from '../utils/errorTypes';
 

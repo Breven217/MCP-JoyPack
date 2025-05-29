@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import "./styles/App.css";
 import ServerCard from "./components/ServerCard";
 import Notification from "./components/Notification";
-import { getServers } from "./setups/fileFunctions";
+import { getServers } from "./setups/configs";
 import { ServerConfig } from "./types";
 import { ShowNotificationFn } from "./utils/notificationUtils";
 

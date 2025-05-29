@@ -24,7 +24,7 @@ const PREREQUISITES = {
 	}
 }
 export const checkPrerequisite = async (server: ServerConfig): Promise<string | null> => {
-	if (!server.localSetup?.prerequisites) {
+	if (!server.prerequisites) {
 		return null;
 	}
 
@@ -39,7 +39,7 @@ export const checkPrerequisite = async (server: ServerConfig): Promise<string | 
 	const refreshCommand = Command.create('refresh-terminal');
 	await refreshCommand.execute();
 
-	for (const prerequisite of server.localSetup.prerequisites) {
+	for (const prerequisite of server.prerequisites) {
 		const command = Command.create('which', [prerequisite]);
 		let installed = false;
 		await command.execute().then((result) => {

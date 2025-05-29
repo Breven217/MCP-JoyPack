@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useCallback } from 'react';
 import { EnvVariable, ServerConfig } from '../types';
 import '../styles/Configuration.css';
-import { readEnvFile } from '../setups/fileFunctions';
+import { readEnvFile } from '../setups/configs';
 import { checkPrerequisite } from '../setups/prerequisites';
 import InstallationProgress from './InstallationProgress';
 import eventBus from '../utils/eventBus';

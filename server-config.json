@@ -141,10 +141,10 @@
 				"docsUrl": "https://vault.bamboohr.io/ui/vault/secrets/shared/show/shared-product-dev/Rollbar-read-token-BambooHR-web-app-project"
 			}
 		},
+		"prerequisites": ["node"],
 		"localSetup": {
 			"repo": "https://github.com/rollbar/rollbar-mcp-server.git",
 			"command": "node",
-			"prerequisites": ["node"],
 			"entryPoint": "build/index.js"
 		}
 	},
@@ -154,34 +154,21 @@
 		"description": "This is a small project that implements the MCP protocol and provides tools to interact with our internal tools.\n\nThe goal of this project is to allow models access to internal data from anywhere possible. For example, if we have a design doc in Slite, we want the LLM to read it so that it's generated responses take into account the design doc.",
 		"docsUrl": "https://github.com/breven217/mcp-bamboohr",
 		"mcpConfig": {
-			"command": "/Users/bjoyner/.mcp/repos/mcp-bamboohr/mcp-bamboohr-wrapper.sh",
-			"args": [],
-			"env": {}
+			"command": "uv",
+		      	"args": [
+				"run",
+				"python",
+				"-m",
+				"mcp_bamboohr"
+		      	]
 		},
+		"prerequisites": ["uv", "vault"],
 		"env": {
-			"MCP_DEBUG": {
-				"type": "string",
-				"value": "false"
-			},
-			"MCP_LOG_LEVEL": {
-				"type": "string",
-				"value": "DEBUG"
-			},
-			"UV_PROJECT": {
-				"type": "string",
-				"value": "~/.mcp/repos/mcp-bamboohr"
-			},
 			"SLITE_API_KEY": {
 				"type": "password",
 				"value": "",
 				"docsUrl": "https://bamboohr.slite.com/settings/organization/api"
 			}
-		},
-		"localSetup": {
-			"repo": "https://github.com/BambooHR/mcp-bamboohr.git",
-			"command": "uv",
-			"prerequisites": ["uv", "vault"],
-			"entryPoint": "mcp-bamboohr"
 		}
 	}
 }

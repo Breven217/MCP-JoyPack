@@ -11,6 +11,7 @@ export type ServerConfig = {
 	docsUrl: string;
 	mcpConfig: MCPServerConfig;
 	env: Record<string, EnvVariable>;
+	prerequisites?: string[];
 	localSetup: LocalSetup;
 }
 
@@ -29,7 +30,6 @@ export type EnvVariable = {
 }
 
 export type LocalSetup = {
-	prerequisites?: string[];
 	repo?: string;
 	command?: CommandType;
 	entryPoint?: string;

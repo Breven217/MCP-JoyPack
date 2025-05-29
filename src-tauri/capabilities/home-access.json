@@ -39,6 +39,18 @@
           ]
         },
         {
+          "name": "git-pull-origin",
+          "cmd": "git",
+          "args": [
+            "-C",
+            {
+              "validator": "\\S+" 
+            },
+            "pull",
+            "origin"
+          ]
+        },
+        {
           "name": "npm-install",
           "cmd": "npm",
           "args": [
@@ -112,18 +124,22 @@
           ]
         },
         {
-          "name": "uv-install",
+          "name": "uv-tool-install",
           "cmd": "uv",
           "args": [
-            "--prefix",
-            {
-              "validator": "\\S+"
-            },
             "tool",
             "install",
             {
               "validator": "\\S+"
             }
+          ]
+        },
+        {
+          "name": "vault-sync-env",
+          "cmd": "sh",
+          "args": [
+            "-c",
+            "source ~/repos/setup/helpers.sh && vault sync-env shared-product-development/dev_exports"
           ]
         }
       ]
