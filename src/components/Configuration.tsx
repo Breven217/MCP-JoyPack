@@ -4,6 +4,8 @@ import '../styles/Configuration.css';
 import { readEnvFile } from '../setups/fileFunctions';
 import { FaEye, FaEyeSlash, FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
 import { checkPrerequisite } from '../setups/prerequisites';
+import InstallationProgress from './InstallationProgress';
+import eventBus from '../utils/eventBus';
 
 interface ConfigurationProps {
   server: ServerConfig;
@@ -12,12 +14,14 @@ interface ConfigurationProps {
   onSave: (envVars: Record<string, EnvVariable>) => void;
   isInstall?: boolean;
   isLoading?: boolean;
+  doneProcessing?: boolean;
 }
 
-const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false }: ConfigurationProps) => {
+const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false, doneProcessing = false }: ConfigurationProps) => {
   const [envVars, setEnvVars] = useState<Record<string, EnvVariable>>({});
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
   const [prerequisitesMet, setPrerequisitesMet] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState<boolean>(false);
   
 
   useEffect(() => {
@@ -68,13 +72,115 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
   };
 
   const handleSave = async () => {
+    // Show installation progress
+    setShowProgress(true);
+    
+    // Emit initial installation event
+    eventBus.updateInstallationProgress({
+      server: server.name,
+      step: 'Setup Started',
+      status: 'in-progress',
+      message: `Setting up ${server.displayName || server.name}...`,
+    });
+    
+    // Check prerequisites
     const message = await checkPrerequisite(server);
     if (message) {
       setPrerequisitesMet(message);
+      setShowProgress(false);
       return;
     }
 
+    // Save environment variables and continue with installation
     onSave(envVars);
+  };
+
+  const renderEnvVars = () => {
+    return Object.entries(server.env).map(([key]) => (
+      <div key={key} className="env-var-input">
+        {isBooleanValue(envVars[key]?.value) ? (
+          <>
+            <div className="env-var-label-container">
+              <label htmlFor={`toggle-${key}`}>{key}:</label>
+              {envVars[key]?.docsUrl && (
+                <a 
+                  href={envVars[key]?.docsUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="docs-link"
+                  title="Open documentation"
+                >
+                  <FaExternalLinkAlt />
+                </a>
+              )}
+            </div>
+            <div className="toggle-container">
+              <label className="toggle-switch">
+                <input
+                  id={`toggle-${key}`}
+                  type="checkbox"
+                  checked={(envVars[key]?.value) === 'true'}
+                  onChange={(e) => handleToggleChange(key, e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+            </div>
+            {envVars[key]?.description && (
+              <div className="env-var-description">
+                <FaInfoCircle className="description-icon" />
+                <span>{envVars[key]?.description}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="env-var-label-container">
+              <label htmlFor={`env-${key}`}>{key}:</label>
+              {envVars[key]?.docsUrl && (
+                <a 
+                  href={envVars[key]?.docsUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="docs-link"
+                  title="Open documentation"
+                >
+                  <FaExternalLinkAlt />
+                </a>
+              )}
+            </div>
+            <div className="input-container">
+              <input
+                id={`env-${key}`}
+                type={
+                  envVars[key]?.type === EnvType.Password
+                    ? visibleFields[key] ? 'text' : 'password'
+                    : 'text'
+                }
+                value={envVars[key]?.value || ''}
+                onChange={(e) => handleInputChange(key, e.target.value)}
+                placeholder={envVars[key]?.value || ''}
+              />
+              {envVars[key]?.type === EnvType.Password && (
+                <button
+                  type="button"
+                  className="toggle-visibility-button"
+                  onClick={() => toggleFieldVisibility(key)}
+                  aria-label={visibleFields[key] ? 'Hide password' : 'Show password'}
+                >
+                  {visibleFields[key] ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              )}
+            </div>
+            {envVars[key]?.description && (
+              <div className="env-var-description">
+                <FaInfoCircle className="description-icon" />
+                <span>{envVars[key]?.description}</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    ));
   };
 
   if (!isOpen) {
@@ -91,112 +197,39 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
           <button className="close-button" onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-body">
-          <p className="config-description">
-            {isInstall
-              ? `Configure environment variables to install ${server.displayName}`
-              : `Update environment variables for ${server.displayName}`}
-          </p>
-
-          <div className="env-vars-container">
-            {Object.entries(server.env).map(([key]) => (
-              <div key={key} className="env-var-input">
-                {isBooleanValue(envVars[key]?.value) ? (
-                  <>
-                    <div className="env-var-label-container">
-                      <label htmlFor={`toggle-${key}`}>{key}:</label>
-                      {envVars[key]?.docsUrl && (
-                        <a 
-                          href={envVars[key]?.docsUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="docs-link"
-                          title="Open documentation"
-                        >
-                          <FaExternalLinkAlt />
-                        </a>
-                      )}
-                    </div>
-                    <div className="toggle-container">
-                      <label className="toggle-switch">
-                        <input
-                          id={`toggle-${key}`}
-                          type="checkbox"
-                          checked={(envVars[key]?.value) === 'true'}
-                          onChange={(e) => handleToggleChange(key, e.target.checked)}
-                        />
-                        <span className="toggle-slider"></span>
-                      </label>
-                    </div>
-                    {envVars[key]?.description && (
-                      <div className="env-var-description">
-                        <FaInfoCircle className="description-icon" />
-                        <span>{envVars[key]?.description}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="env-var-label-container">
-                      <label htmlFor={`env-${key}`}>{key}:</label>
-                      {envVars[key]?.docsUrl && (
-                        <a 
-                          href={envVars[key]?.docsUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="docs-link"
-                          title="Open documentation"
-                        >
-                          <FaExternalLinkAlt />
-                        </a>
-                      )}
-                    </div>
-                    <div className="input-container">
-                      <input
-                        id={`env-${key}`}
-                        type={
-                          envVars[key]?.type === EnvType.Password
-                            ? visibleFields[key] ? 'text' : 'password'
-                            : 'text'
-                        }
-                        value={envVars[key]?.value || ''}
-                        onChange={(e) => handleInputChange(key, e.target.value)}
-                        placeholder={envVars[key]?.value || ''}
-                      />
-                      {envVars[key]?.type === EnvType.Password && (
-                        <button
-                          type="button"
-                          className="toggle-visibility-button"
-                          onClick={() => toggleFieldVisibility(key)}
-                          aria-label={visibleFields[key] ? 'Hide password' : 'Show password'}
-                        >
-                          {visibleFields[key] ? <FaEyeSlash /> : <FaEye />}
-                        </button>
-                      )}
-                    </div>
-                    {envVars[key]?.description && (
-                      <div className="env-var-description">
-                        <FaInfoCircle className="description-icon" />
-                        <span>{envVars[key]?.description}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="modal-footer">
+        <div className="config-content">
           {prerequisitesMet && (
-            <div className="prerequisite-error">
+            <div className="error-message">
               {prerequisitesMet}
             </div>
           )}
-          <button className="cancel-button" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </button>
-          <button className="save-button" onClick={handleSave} disabled={isLoading || !!prerequisitesMet}>
+          
+          {!showProgress ? (
+            <div className="env-vars-section">
+              <h3 className="section-title">Environment Variables</h3>
+              <div className="env-vars-container">{renderEnvVars()}</div>
+            </div>
+          ) : (
+            <div className="installation-section">
+              <h3 className="section-title">Installation Progress</h3>
+              <InstallationProgress serverName={server.name} />
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          {doneProcessing ? (
+            <button className="cancel-button" onClick={onClose} disabled={isLoading}>
+              Close
+            </button>
+          ) : (
+            <>
+            {!isLoading && (
+              <button className="cancel-button" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </button>
+            )}
+            <button className="save-button" onClick={handleSave} disabled={isLoading || prerequisitesMet !== null}>
             {isLoading ? (
               <>
                 <span className="spinner"></span>
@@ -206,6 +239,8 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
               isInstall ? 'Install' : 'Save'
             )}
           </button>
+          </>
+          )}
         </div>
       </div>
     </div>

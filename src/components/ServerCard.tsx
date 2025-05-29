@@ -15,6 +15,7 @@ interface ServerCardProps {
 export default function ServerCard({ server, onRefresh, showNotification }: ServerCardProps) {
 	const [isConfigOpen, setIsConfigOpen] = useState(false);
 	const [isProcessing, setIsProcessing] = useState(false);
+	const [doneProcessing, setDoneProcessing] = useState(false);
 	const [tooltipVisible, setTooltipVisible] = useState(false);
 	const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 	const infoIconRef = useRef<HTMLDivElement>(null);
@@ -25,6 +26,9 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 	
 	const handleConfigClose = () => {
 		setIsConfigOpen(false);
+		setDoneProcessing(false);
+		setIsProcessing(false);
+		onRefresh();
 	};
 	
 	const handleConfigSave = async (envVars: Record<string, EnvVariable>) => {
@@ -35,17 +39,12 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 			
 			// Show notification to restart Cascade
 			showRestartCascadeNotification(showNotification);
-			
-			// Refresh the server list
-			onRefresh();
-			
-			// Close the modal
-			handleConfigClose();
 		} catch (error) {
 			console.error('Error saving configuration:', error);
 			showNotification('Error saving configuration', 'error');
 		} finally {
 			setIsProcessing(false);
+			setDoneProcessing(true);
 		}
 	};
 	
@@ -148,6 +147,7 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 					onSave={handleConfigSave}
 					isInstall={!server.installed}
 					isLoading={isProcessing}
+					doneProcessing={doneProcessing}
 				/>
 			)}
 			

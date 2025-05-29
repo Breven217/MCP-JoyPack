@@ -12,16 +12,16 @@
 }
 
 .config-modal {
-  background-color: var(--bamboo-white);
+  background-color: white;
   border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  color: var(--bamboo-black);
-  overflow: hidden; /* Prevent scrollbar from appearing on the modal itself */
 }
 
 .modal-header {
@@ -60,11 +60,13 @@
   color: var(--bamboo-black);
 }
 
-.modal-body {
+.config-content {
   padding: 20px;
-  overflow-y: auto;
   flex: 1;
-  background-color: var(--bamboo-white);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .config-description {
@@ -73,13 +75,29 @@
   font-size: 0.9rem;
 }
 
+.env-vars-section, .installation-section {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.installation-section .section-title {
+  margin-bottom: 5px;
+}
+
 .env-vars-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: 50vh;
-  overflow-y: auto;
-  padding-right: 1rem;
+  gap: 15px;
+  margin-bottom: 10px;
 }
 
 .env-var-label-container {
@@ -178,14 +196,11 @@
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid var(--bamboo-border);
-  background-color: var(--bamboo-white);
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+  margin-top: auto;
 }
 
 .modal-footer button {
@@ -324,14 +339,11 @@ button:disabled {
 }
 
 .prerequisite-error {
-  display: flex;
-  align-items: center;
+  color: #dc3545;
+  margin-bottom: 15px;
+  padding: 10px;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
-  color: #721c24;
-  padding: 8px 12px;
   border-radius: 4px;
-  margin-right: auto;
-  font-size: 0.85rem;
+  width: 100%;
 }
-
