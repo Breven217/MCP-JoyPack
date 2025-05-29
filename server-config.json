@@ -50,5 +50,47 @@
 		"env": {
 			"GITHUB_PERSONAL_ACCESS_TOKEN": ""
 		}
+	},
+	"mcp-atlassian": {
+		"name": "mcp-atlassian",
+		"displayName": "Atlassian",
+		"description": "An Atlassian server for MCP",
+		"docsUrl": "https://github.com/sooperset/mcp-atlassian",
+		"mcpConfig": {
+			"command": "docker",
+			"disabledTools": [],
+			"args": [
+				"run",
+				"--rm",
+				"-i",
+				"--env-file",
+				"~/.mcp/atlassian.env",
+				"ghcr.io/sooperset/mcp-atlassian:latest"
+			]
+		},
+		"env": {
+			"JIRA_URL": "https://bamboohr.atlassian.net",
+			"JIRA_USERNAME": "[user]@bamboohr.com",
+			"JIRA_API_TOKEN": ""
+		}
+	},
+	"rollbar": {
+		"name": "rollbar",
+		"displayName": "Rollbar",
+		"description": "A Rollbar server for MCP",
+		"docsUrl": "https://github.com/rollbar/rollbar-mcp-server",
+		"mcpConfig": {
+			"command": "/Users/bjoyner/.mcp/repos/rollbar-mcp-server/rollbar-wrapper.sh",
+			"args": [],
+			"env": {}
+		},
+		"env": {
+			"ROLLBAR_ACCESS_TOKEN": ""
+		},
+		"localSetup": {
+			"repo": "https://github.com/rollbar/rollbar-mcp-server.git",
+			"command": "node",
+			"entryPoint": "build/index.js"
+		}
 	}
 }

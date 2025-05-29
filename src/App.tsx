@@ -1,14 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./styles/App.css";
 import ServerCard from "./components/ServerCard";
+import Notification from "./components/Notification";
 import { getServers } from "./fileFunctions";
 import { ServerConfig } from "./types";
+import { ShowNotificationFn } from "./utils/notificationUtils";
 
 function App() {
   const [installedServers, setInstalledServers] = useState<ServerConfig[]>([]);
   const [availableServers, setAvailableServers] = useState<ServerConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    visible: boolean;
+    message: string;
+    type?: 'info' | 'success' | 'warning' | 'error';
+  }>({ visible: false, message: '', type: 'info' });
 
   // Function to get MCP server information
   const fetchMCPServers = async () => {
@@ -27,6 +34,20 @@ function App() {
       setLoading(false);
     }
   };
+  
+  // Generic function to show notifications
+  const showNotification: ShowNotificationFn = useCallback((message, type = 'info') => {
+    setNotification({
+      visible: true,
+      message,
+      type
+    });
+  }, []);
+  
+  // Close notification
+  const closeNotification = () => {
+    setNotification(prev => ({ ...prev, visible: false }));
+  };
 
   // Load server data on component mount
   useEffect(() => {
@@ -41,7 +62,10 @@ function App() {
           <h1>MCP JoyPack Dashboard</h1>
           <p>Manage your Model Context Protocol servers</p>
         </div>
-        <button className="refresh-btn" onClick={fetchMCPServers}>
+        <button className="refresh-btn" onClick={async () => {
+          // Force refresh from GitHub before fetching servers
+          await fetchMCPServers();
+        }}>
           <span className="refresh-icon">↻</span> Refresh
         </button>
       </div>
@@ -63,6 +87,7 @@ function App() {
                   key={`installed-${server.name}-${index}`}
                   server={server}
                   onRefresh={fetchMCPServers}
+                  showNotification={showNotification}
                 />
               ))}
             </div>
@@ -76,16 +101,22 @@ function App() {
                   key={`available-${server.name}-${index}`}
                   server={server}
                   onRefresh={fetchMCPServers}
+                  showNotification={showNotification}
                 />
               ))}
             </div>
           </section>
-          
-          <div className="dashboard-footer">
-            <p className="dashboard-meta">Last updated: {new Date().toLocaleString()}</p>
-          </div>
         </div>
       )}
+      
+      {/* Notification for Cascade restart */}
+      <Notification
+        visible={notification.visible}
+        message={notification.message}
+        type={notification.type}
+        onClose={closeNotification}
+        duration={5000} // Show for 5 seconds
+      />
     </main>
   );
 }

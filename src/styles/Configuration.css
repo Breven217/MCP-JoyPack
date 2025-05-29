@@ -166,6 +166,10 @@
   border: none;
   color: white;
   box-shadow: 0 2px 4px rgba(98, 187, 70, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .save-button:hover:not(:disabled) {
@@ -198,6 +202,21 @@ button:disabled {
 
 .toggle-visibility-button:hover {
   color: var(--bamboo-green);
+}
+
+/* Spinner animation for loading state */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Toggle switch styles */

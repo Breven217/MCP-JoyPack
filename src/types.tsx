@@ -11,6 +11,7 @@ export type ServerConfig = {
 	docsUrl: string;
 	mcpConfig: MCPServerConfig;
 	env: Record<string, string>;
+	localSetup: LocalSetup;
 }
 
 export type MCPServerConfig = {
@@ -18,4 +19,10 @@ export type MCPServerConfig = {
 	disabledTools: string[];
 	args: string[];
 	disabled?: boolean;
+}
+
+export type LocalSetup = {
+	repo?: string;
+	command?: string;
+	entryPoint?: string;
 }

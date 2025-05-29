@@ -1,15 +1,18 @@
-import { readTextFile, writeTextFile, BaseDirectory, remove, exists } from '@tauri-apps/plugin-fs';
+import { readTextFile, writeTextFile, BaseDirectory, remove, exists, mkdir } from '@tauri-apps/plugin-fs';
 import { ServerConfig, ServersObject } from './types'; 
 import { homeDir } from '@tauri-apps/api/path';
+import { Command } from '@tauri-apps/plugin-shell';
 
 const CONFIG_PATH = ".codeium/windsurf/mcp_config.json";
 const ENV_PATH = ".mcp";
-const SERVER_CONFIG_PATH = "repos/MCP-JoyPack/server-config.json";
+const REPO_PATH = ".mcp/repos";
+const HOME_PATH = await homeDir();
+const REMOTE_CONFIG_URL = `https://gist.githubusercontent.com/Breven217/78add136e29ae98a8ed1a2c28d4f8d80/raw/server-config.json`;
 
 export const getServers = async (): Promise<ServersObject | null> => {
   try {
     const installedServersObj = await readExistingConfigFile();
-    const availableServers = await readDummyConfigFile();
+    const availableServers = await fetchServerConfigs();
     
     if (!installedServersObj || !availableServers) {
       return null;
@@ -58,20 +61,34 @@ const readExistingConfigFile = async (): Promise<Record<string, any> | null> => 
   }
 };
 
-const readDummyConfigFile = async (): Promise<ServerConfig[] | null> => {
+/**
+ * Fetch server configurations from GitHub
+ */
+const fetchServerConfigs = async (): Promise<ServerConfig[] | null> => {
   try {
-    const configContent = await readTextFile(SERVER_CONFIG_PATH, { baseDir: BaseDirectory.Home });
-    const jsonContent = JSON.parse(configContent);
+    // Fetch from remote source
+    console.log('Fetching server configs from GitHub');
+    const response = await fetch(REMOTE_CONFIG_URL, { cache: 'no-cache' });
+    
+    if (response.ok) {
+      const responseText = await response.text();
+      console.log('Response:', responseText);
+      const jsonContent = JSON.parse(responseText);
+      console.log('Parsed JSON:', jsonContent);
+      const servers: ServerConfig[] = [];
+      
+      for (const serverName in jsonContent) {
+        const server = jsonContent[serverName];
+        servers.push(server);
+      }
 
-    const servers: ServerConfig[] = [];    
-    for (const serverName in jsonContent) {        
-      const server = jsonContent[serverName];
-      servers.push(server);
+      return servers;
+    } else {
+      console.error(`Failed to fetch remote config: ${response.status}`);
+      return null;
     }
-
-    return servers;
   } catch (error) {
-    console.error('Error reading config file:', error);
+    console.error('Error fetching server configs:', error);
     return null;
   }
 };
@@ -102,12 +119,16 @@ const installServer = async (server: ServerConfig) => {
 
     // Add server to installed servers
     // replace all instances of "~/" with the home directory
-    const home = await homeDir();
-    server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, home));
+    server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, HOME_PATH));
     jsonContent.mcpServers[server.name] = server.mcpConfig;
 
     // Write updated config
     await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
+
+    // Install repo if specified
+    if (server.localSetup?.repo) {
+      await setupLocal(server);
+    }
     return true;
   } catch (error) {
     console.error('Error installing server:', error);
@@ -127,6 +148,11 @@ export const uninstallServer = async (server: ServerConfig) => {
 
     await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
     await deleteEnvFile(server);
+
+    // Tear down repo if specified
+    if (server.localSetup?.repo) {
+      await tearDownLocalRepo(server);
+    }
     
     return true;
   } catch (error) {
@@ -170,8 +196,7 @@ const deleteEnvFile = async (server: ServerConfig) => {
 const saveEnvFile = async (server: ServerConfig, envVars: Record<string, string>) => {
   try {
     // Replace all instances of ~/ with the home directory path
-    const home = await homeDir();
-    const cleanEnvVars = JSON.parse(JSON.stringify(envVars).replace(/~/g, home));
+    const cleanEnvVars = JSON.parse(JSON.stringify(envVars).replace(/~/g, HOME_PATH));
     let envString = '';
     for (const [key, value] of Object.entries(cleanEnvVars)) {
       envString += `${key}=${value}\n`;
@@ -194,5 +219,86 @@ export const toggleServerEnabled = async (server: ServerConfig) => {
     await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
   } catch (error) {
     console.error('Error toggling server enabled state:', error);
+  }
+}
+
+const setupLocal = async (server: ServerConfig) => {
+  try {
+    if (!server.localSetup?.repo) {
+      throw new Error('Server does not have a special repository URL');
+    }
+    const directoryPath = `${HOME_PATH}/${REPO_PATH}`;
+    // Ensure MCP directory exists
+    await mkdir(directoryPath, { recursive: true, baseDir: BaseDirectory.Home });
+    const repoName = server.localSetup.repo.split('/').pop()?.replace('.git', '') || 'repo';
+    const repoPath = `${directoryPath}/${repoName}`;
+    // Clone the repository
+    const cloneCommand = Command.create('git-clone', ['clone', server.localSetup.repo, repoPath]);
+    await cloneCommand.execute().catch((error) => {
+      console.error('Error cloning repository:', error);
+      throw error;
+    });
+    // Install dependencies
+    const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
+    await installCommand.execute().catch((error) => {
+      console.error('Error installing dependencies:', error);
+      throw error;
+    });
+    // Build the project
+    const buildCommand = Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']);
+    await buildCommand.execute().catch((error) => {
+      console.error('Error building project:', error);
+      throw error;
+    });
+    // Create wrapper
+    await createEnvWrapper(server);
+    return repoPath;
+  } catch (error) {
+    console.error('Error setting up local repository:', error);
+    throw error;
+  }
+};
+
+const tearDownLocalRepo = async (server: ServerConfig) => {
+  try {
+    if (!server.localSetup?.repo) {
+      throw new Error('Server does not have a special repository URL');
+    }
+    const repoName = server.localSetup.repo.split('/').pop()?.replace('.git', '') || 'repo';
+    const repoPath = `${HOME_PATH}/${REPO_PATH}/${repoName}`;
+    // if the repo doesn't exist, skip
+    const existing = await exists(repoPath, { baseDir: BaseDirectory.Home });
+    if (!existing) {
+      return;
+    }
+    await remove(repoPath, { recursive: true, baseDir: BaseDirectory.Home });
+  } catch (error) {
+    console.error('Error tearing down local repository:', error);
+  }
+};
+
+const createEnvWrapper = async (server: ServerConfig) => {
+  // Create wrapper to load env variables and run the server
+  try {
+    if (!server.localSetup?.command) {
+      throw new Error('Server does not have a special command to run');
+    }
+    if (!server.localSetup?.entryPoint) {
+      throw new Error('Server does not have a special entry point to run');
+    }
+    const repoName = server.localSetup.repo?.split('/').pop()?.replace('.git', '') || 'repo';
+    const repoPath = `${HOME_PATH}/${REPO_PATH}/${repoName}`;
+    const wrapperPath = `${repoPath}/${server.name}-wrapper.sh`;
+    const envPath = `${HOME_PATH}/${ENV_PATH}/${server.name}.env`;
+
+    // Create wrapper file
+    const wrapperContent = `#!/bin/bash
+export $(cat ${envPath} | xargs)
+${server.localSetup.command} ${repoPath}/${server.localSetup.entryPoint}`;
+    await writeTextFile(wrapperPath, wrapperContent, { baseDir: BaseDirectory.Home });
+    // Make the wrapper executable
+    await Command.create('chmod', ['+x', wrapperPath]).execute();
+  } catch (error) {
+    console.error('Error creating env wrapper:', error);
   }
 }

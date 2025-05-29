@@ -13,12 +13,64 @@
     "fs:allow-write-file",
     "fs:allow-write-text-file",
     "fs:allow-remove",
+    "shell:allow-execute",
     {
       "identifier": "fs:scope",
       "allow": [
         { "path": "$HOME/.codeium/windsurf/**" },
         { "path": "$HOME/repos/MCP-JoyPack/**" },
         { "path": "$HOME/.mcp/**" }
+      ]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "git-clone",
+          "cmd": "git",
+          "args": [
+            "clone",
+            {
+              "validator": "\\S+"
+            },
+            {
+              "validator": "\\S+"
+            }
+          ]
+        },
+        {
+          "name": "npm-install",
+          "cmd": "npm",
+          "args": [
+            "--prefix",
+            {
+              "validator": "\\S+"
+            },
+            "install"
+          ]
+        },
+        {
+          "name": "npm-build",
+          "cmd": "npm",
+          "args": [
+            "--prefix",
+            {
+              "validator": "\\S+"
+            },
+            "run",
+            "build"
+          ]
+        },
+        {
+          "name": "chmod",
+          "cmd": "chmod",
+          "args": [
+            "+x",
+            {
+              "validator": "\\S+"
+            }
+          ]
+        }
       ]
     }
   ]

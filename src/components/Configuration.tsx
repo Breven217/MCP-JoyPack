@@ -10,9 +10,10 @@ interface ConfigurationProps {
   onClose: () => void;
   onSave: (envVars: Record<string, string>) => void;
   isInstall?: boolean;
+  isLoading?: boolean;
 }
 
-const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false }: ConfigurationProps) => {
+const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false }: ConfigurationProps) => {
   const [envVars, setEnvVars] = useState<Record<string, string>>({});
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
 
@@ -141,11 +142,18 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false }: C
         </div>
 
         <div className="modal-footer">
-          <button className="cancel-button" onClick={onClose}>
+          <button className="cancel-button" onClick={onClose} disabled={isLoading}>
             Cancel
           </button>
-          <button className="save-button" onClick={() => onSave(envVars)}>
-            {isInstall ? 'Install' : 'Save'}
+          <button className="save-button" onClick={() => onSave(envVars)} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <span className="spinner"></span>
+                {isInstall ? 'Installing...' : 'Saving...'}
+              </>
+            ) : (
+              isInstall ? 'Install' : 'Save'
+            )}
           </button>
         </div>
       </div>

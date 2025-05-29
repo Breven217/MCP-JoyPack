@@ -2,13 +2,15 @@ import { useState } from "react";
 import { ServerConfig } from "../types";
 import { saveServer, uninstallServer, toggleServerEnabled } from "../fileFunctions";
 import Configuration from "./Configuration";
+import { ShowNotificationFn, showRestartCascadeNotification } from "../utils/notificationUtils";
  
 interface ServerCardProps {
 	server: ServerConfig;
 	onRefresh: () => void;
+	showNotification: ShowNotificationFn;
 }
 
-export default function ServerCard({ server, onRefresh }: ServerCardProps) {
+export default function ServerCard({ server, onRefresh, showNotification }: ServerCardProps) {
 	const [isConfigOpen, setIsConfigOpen] = useState(false);
 	const [isProcessing, setIsProcessing] = useState(false);
 	
@@ -26,6 +28,9 @@ export default function ServerCard({ server, onRefresh }: ServerCardProps) {
 		try {
 			await saveServer(server, envVars);
 			
+			// Show notification to restart Cascade
+			showRestartCascadeNotification(showNotification);
+			
 			// Refresh the server list
 			onRefresh();
 			
@@ -33,6 +38,7 @@ export default function ServerCard({ server, onRefresh }: ServerCardProps) {
 			handleConfigClose();
 		} catch (error) {
 			console.error('Error saving configuration:', error);
+			showNotification('Error saving configuration', 'error');
 		} finally {
 			setIsProcessing(false);
 		}
@@ -43,9 +49,14 @@ export default function ServerCard({ server, onRefresh }: ServerCardProps) {
 		
 		try {
 			await uninstallServer(server);
+			
+			// Show notification to restart Cascade
+			showRestartCascadeNotification(showNotification);
+			
 			onRefresh();
 		} catch (error) {
 			console.error('Error uninstalling server:', error);
+			showNotification('Error uninstalling server', 'error');
 		} finally {
 			setIsProcessing(false);
 		}
@@ -56,9 +67,14 @@ export default function ServerCard({ server, onRefresh }: ServerCardProps) {
 		
 		try {
 			await toggleServerEnabled(server);
+			
+			// Show notification to restart Cascade
+			showRestartCascadeNotification(showNotification);
+			
 			onRefresh();
 		} catch (error) {
 			console.error('Error toggling server state:', error);
+			showNotification('Error toggling server state', 'error');
 		} finally {
 			setIsProcessing(false);
 		}
@@ -111,6 +127,7 @@ export default function ServerCard({ server, onRefresh }: ServerCardProps) {
 					onClose={handleConfigClose}
 					onSave={handleConfigSave}
 					isInstall={!server.installed}
+					isLoading={isProcessing}
 				/>
 			)}
 		</>
