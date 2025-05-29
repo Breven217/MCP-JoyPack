@@ -2,7 +2,7 @@
 	"mysql": {
 		"name": "mysql",
 		"displayName": "Joyful MySQL",
-		"description": "A MySQL server for MCP",
+		"description": "A Model Context Protocol (MCP) server that allows AI assistants like Cascade to interact with both local and remote MySQL databases.",
 		"docsUrl": "https://github.com/breven217/joyfulsql_mcp",
 		"mcpConfig": {
 			"command": "docker",
@@ -17,23 +17,57 @@
 			]
 		},
 		"env": {
-			"LOCAL_HOST": "app.bamboolocal.com",
-			"LOCAL_USER": "web",
-			"LOCAL_PASSWORD": "password",
-			"LOCAL_PORT": "3396",
-			"ODI_HOST": "127.0.0.1",
-			"ODI_USER": "web",
-			"ODI_PASSWORD": "",
-			"ODI_PORT": "3306",
-			"ODI_SSH_PORT": "22",
-			"ODI_SSH_KEY": "~/.ssh/id_rsa",
-			"WRITE_ACCESS": "false"
+			"LOCAL_HOST": {
+				"type": "string",
+				"value": "app.bamboolocal.com"
+			},
+			"LOCAL_USER": {
+				"type": "string",
+				"value": "web"
+			},
+			"LOCAL_PASSWORD": {
+				"type": "password",
+				"value": "password"
+			},
+			"LOCAL_PORT": {
+				"type": "string",
+				"value": "3396"
+			},
+			"ODI_HOST": {
+				"type": "string",
+				"value": "127.0.0.1"
+			},
+			"ODI_USER": {
+				"type": "string",
+				"value": "web"
+			},
+			"ODI_PASSWORD": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://vault.bamboohr.io/ui/vault/secrets/shared/show/shared-product-dev/stage_database_password"
+			},
+			"ODI_PORT": {
+				"type": "string",
+				"value": "3306"
+			},
+			"ODI_SSH_PORT": {
+				"type": "string",
+				"value": "22"
+			},
+			"ODI_SSH_KEY": {
+				"type": "string",
+				"value": "~/.ssh/id_rsa"
+			},
+			"WRITE_ACCESS": {
+				"type": "string",
+				"value": "false"
+			}
 		}
 	},
 	"github": {
 		"name": "github",
 		"displayName": "GitHub",
-		"description": "A GitHub server for MCP",
+		"description": "The GitHub MCP Server is a Model Context Protocol (MCP) server that provides seamless integration with GitHub APIs, enabling advanced automation and interaction capabilities for developers and tools.",
 		"docsUrl": "https://github.com/github/github-mcp-server",
 		"mcpConfig": {
 			"command": "docker",
@@ -48,13 +82,18 @@
 			]
 		},
 		"env": {
-			"GITHUB_PERSONAL_ACCESS_TOKEN": ""
+			"GITHUB_PERSONAL_ACCESS_TOKEN": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://github.com/settings/tokens/new",
+				"description": "A personal access token for GitHub authentication, be sure to add the correct scope and SSO auth."
+			}
 		}
 	},
 	"mcp-atlassian": {
 		"name": "mcp-atlassian",
 		"displayName": "Atlassian",
-		"description": "An Atlassian server for MCP",
+		"description": "Model Context Protocol (MCP) server for Atlassian products (Confluence and Jira). This integration supports only Jira",
 		"docsUrl": "https://github.com/sooperset/mcp-atlassian",
 		"mcpConfig": {
 			"command": "docker",
@@ -69,15 +108,26 @@
 			]
 		},
 		"env": {
-			"JIRA_URL": "https://bamboohr.atlassian.net",
-			"JIRA_USERNAME": "[user]@bamboohr.com",
-			"JIRA_API_TOKEN": ""
+			"JIRA_URL": {
+				"type": "string",
+				"value": "https://bamboohr.atlassian.net"
+			},
+			"JIRA_USERNAME": {
+				"type": "string",
+				"value": "[user]@bamboohr.com"
+			},
+			"JIRA_API_TOKEN": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://id.atlassian.com/manage-profile/security/api-tokens",
+				"description": "An API token for Jira authentication, be sure to add the correct scope and SSO auth."
+			}
 		}
 	},
 	"rollbar": {
 		"name": "rollbar",
 		"displayName": "Rollbar",
-		"description": "A Rollbar server for MCP",
+		"description": "A Model Context Protocl (MCP) server for Rollbar.",
 		"docsUrl": "https://github.com/rollbar/rollbar-mcp-server",
 		"mcpConfig": {
 			"command": "/Users/bjoyner/.mcp/repos/rollbar-mcp-server/rollbar-wrapper.sh",
@@ -85,12 +135,51 @@
 			"env": {}
 		},
 		"env": {
-			"ROLLBAR_ACCESS_TOKEN": ""
+			"ROLLBAR_ACCESS_TOKEN": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://vault.bamboohr.io/ui/vault/secrets/shared/show/shared-product-dev/Rollbar-read-token-BambooHR-web-app-project"
+			}
 		},
 		"localSetup": {
 			"repo": "https://github.com/rollbar/rollbar-mcp-server.git",
 			"command": "node",
 			"entryPoint": "build/index.js"
+		}
+	},
+	"mcp-bamboohr": {
+		"name": "mcp-bamboohr",
+		"displayName": "Bamboohr (MCP)",
+		"description": "This is a small project that implements the MCP protocol and provides tools to interact with our internal tools.\n\nThe goal of this project is to allow models access to internal data from anywhere possible. For example, if we have a design doc in Slite, we want the LLM to read it so that it's generated responses take into account the design doc.",
+		"docsUrl": "https://github.com/breven217/mcp-bamboohr",
+		"mcpConfig": {
+			"command": "/Users/bjoyner/.mcp/repos/mcp-bamboohr/mcp_bamboohr",
+			"args": [],
+			"env": {}
+		},
+		"env": {
+			"MCP_DEBUG": {
+				"type": "string",
+				"value": "false"
+			},
+			"MCP_LOG_LEVEL": {
+				"type": "string",
+				"value": "DEBUG"
+			},
+			"UV_PROJECT": {
+				"type": "string",
+				"value": "~/.mcp/repos/mcp-bamboohr"
+			},
+			"SLITE_API_KEY": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://bamboohr.slite.com/settings/organization/api"
+			}
+		},
+		"localSetup": {
+			"repo": "https://github.com/BambooHR/mcp-bamboohr.git",
+			"command": "uv",
+			"entryPoint": "mcp_bamboohr"
 		}
 	}
 }

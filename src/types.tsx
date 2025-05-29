@@ -10,7 +10,7 @@ export type ServerConfig = {
 	description: string;
 	docsUrl: string;
 	mcpConfig: MCPServerConfig;
-	env: Record<string, string>;
+	env: Record<string, EnvVariable>;
 	localSetup: LocalSetup;
 }
 
@@ -21,8 +21,26 @@ export type MCPServerConfig = {
 	disabled?: boolean;
 }
 
+export type EnvVariable = {
+	type: EnvType;
+	docsUrl?: string;
+	description?: string;
+	value: string;
+}
+
 export type LocalSetup = {
 	repo?: string;
-	command?: string;
+	command?: CommandType;
 	entryPoint?: string;
+}
+
+export enum EnvType {
+	String = 'string',
+	Password = 'password'
+}
+
+export enum CommandType {
+	Node = 'node',
+	UV = 'uv',
+	Docker = 'docker'
 }

@@ -2,8 +2,6 @@
 
 A desktop application built with Tauri, React, and TypeScript for managing Model Context Protocol (MCP) servers. MCP JoyPack allows you to easily install, configure, and manage various MCP servers from a single interface.
 
-![MCP JoyPack Dashboard](./docs/dashboard.png)
-
 ## Features
 
 - Install and manage multiple MCP servers

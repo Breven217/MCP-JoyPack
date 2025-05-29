@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { ServerConfig } from "../types";
+import { useState, useRef } from "react";
+import { EnvVariable, ServerConfig } from "../types";
 import { saveServer, uninstallServer, toggleServerEnabled } from "../fileFunctions";
 import Configuration from "./Configuration";
 import { ShowNotificationFn, showRestartCascadeNotification } from "../utils/notificationUtils";
- 
+import { FaInfoCircle } from "react-icons/fa";
+import Tooltip from "./Tooltip";
+
 interface ServerCardProps {
 	server: ServerConfig;
 	onRefresh: () => void;
@@ -13,6 +15,9 @@ interface ServerCardProps {
 export default function ServerCard({ server, onRefresh, showNotification }: ServerCardProps) {
 	const [isConfigOpen, setIsConfigOpen] = useState(false);
 	const [isProcessing, setIsProcessing] = useState(false);
+	const [tooltipVisible, setTooltipVisible] = useState(false);
+	const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+	const infoIconRef = useRef<HTMLDivElement>(null);
 	
 	const handleConfigClick = () => {
 		setIsConfigOpen(true);
@@ -22,7 +27,7 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 		setIsConfigOpen(false);
 	};
 	
-	const handleConfigSave = async (envVars: Record<string, string>) => {
+	const handleConfigSave = async (envVars: Record<string, EnvVariable>) => {
 		setIsProcessing(true);
 		
 		try {
@@ -84,19 +89,34 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 		<>
 			<div key={server.name} className={`server-card ${server.installed ? 'installed' : 'available'}`}>
 				{server.installed && (
-					<div 
-						className={`status-dot ${server.mcpConfig?.disabled ? 'disabled' : 'enabled'}`}
+					<span 
+						className={`status-indicator ${server.mcpConfig?.disabled ? 'status-disabled' : 'status-enabled'}`}
 						onClick={handleToggleEnabled}
-						title={server.mcpConfig?.disabled ? 'Enable server' : 'Disable server'}
-					></div>
+						title={server.mcpConfig?.disabled ? 'Server disabled - Click to enable' : 'Server enabled - Click to disable'}
+					></span>
 				)}
-				{!server.installed && (
-					<div className="server-type available">Available</div>
-				)}
+				{/* Removed Available indicator */}
 				
-				<h3>{server.displayName}</h3>
-				
-				<p>{server.description.length > 60 ? `${server.description.substring(0, 60)}...` : server.description}</p>
+				<h3>
+					{server.displayName}
+					<div 
+						className="info-icon-container"
+						ref={infoIconRef}
+						onMouseEnter={() => {
+							if (infoIconRef.current) {
+								const rect = infoIconRef.current.getBoundingClientRect();
+								setTooltipPosition({
+									x: rect.left + rect.width / 2,
+									y: rect.top - 10
+								});
+								setTooltipVisible(true);
+							}
+						}}
+						onMouseLeave={() => setTooltipVisible(false)}
+					>
+						<FaInfoCircle className="info-icon" />
+					</div>
+				</h3>
 				
 				<div className="server-actions">
 					{server.installed ? (
@@ -130,6 +150,13 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 					isLoading={isProcessing}
 				/>
 			)}
+			
+			{/* Tooltip */}
+			<Tooltip
+				text={server.description}
+				visible={tooltipVisible}
+				position={tooltipPosition}
+			/>
 		</>
 	);
 };

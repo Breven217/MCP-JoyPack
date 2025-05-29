@@ -95,16 +95,23 @@ function App() {
           
           <section className="server-section">
             <h2>Available MCP Servers <span className="server-count">{availableServers.length}</span></h2>
-            <div className="server-grid">
-              {availableServers.map((server, index) => (
-                <ServerCard 
-                  key={`available-${server.name}-${index}`}
-                  server={server}
-                  onRefresh={fetchMCPServers}
-                  showNotification={showNotification}
-                />
-              ))}
-            </div>
+            {availableServers.length > 0 ? (
+              <div className="server-grid">
+                {availableServers.map((server, index) => (
+                  <ServerCard 
+                    key={`available-${server.name}-${index}`}
+                    server={server}
+                    onRefresh={fetchMCPServers}
+                    showNotification={showNotification}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">📦</div>
+                <p className="empty-state-text">No additional MCP servers available at this time. Check back later for new servers.</p>
+              </div>
+            )}
           </section>
         </div>
       )}

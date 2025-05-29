@@ -1,27 +1,27 @@
 import { useState, useEffect } from 'react';
-import { ServerConfig } from '../types';
+import { EnvType, EnvVariable, ServerConfig } from '../types';
 import '../styles/Configuration.css';
 import { readEnvFile } from '../fileFunctions';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
 
 interface ConfigurationProps {
   server: ServerConfig;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (envVars: Record<string, string>) => void;
+  onSave: (envVars: Record<string, EnvVariable>) => void;
   isInstall?: boolean;
   isLoading?: boolean;
 }
 
 const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isLoading = false }: ConfigurationProps) => {
-  const [envVars, setEnvVars] = useState<Record<string, string>>({});
+  const [envVars, setEnvVars] = useState<Record<string, EnvVariable>>({});
   const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     // Initialize env vars from server config
     if (server.installed) {
       readEnvFile(server).then(envVars => {
-        setEnvVars(envVars || {});
+        setEnvVars({ ...envVars });
       });
     } else if (server && server.env) {
       setEnvVars({ ...server.env });
@@ -39,9 +39,10 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
   }, [server, isOpen]);
 
   const handleInputChange = (key: string, value: string) => {
+    // Update the env vars state by finding the env var with the matching key and updating the "value" property
     setEnvVars(prev => ({
       ...prev,
-      [key]: value
+      [key]: { ...prev[key], value }
     }));
   };
 
@@ -52,12 +53,6 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
     }));
   };
 
-  const shouldHideField = (key: string) => {
-    return key.toLowerCase().includes('token')
-      || key.toLowerCase().includes('password')
-      || key.toLowerCase().includes('key');
-  };
-
   const isBooleanValue = (value: string | undefined) => {
     return value === 'true' || value === 'false';
   };
@@ -65,7 +60,7 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
   const handleToggleChange = (key: string, checked: boolean) => {
     setEnvVars(prev => ({
       ...prev,
-      [key]: checked ? 'true' : 'false'
+      [key]: { ...prev[key], value: checked ? 'true' : 'false' }
     }));
   };
 
@@ -91,39 +86,71 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
           </p>
 
           <div className="env-vars-container">
-            {Object.entries(server.env).map(([key, defaultValue]) => (
+            {Object.entries(server.env).map(([key]) => (
               <div key={key} className="env-var-input">
-                {isBooleanValue(envVars[key] || defaultValue as string) ? (
+                {isBooleanValue(envVars[key]?.value) ? (
                   <>
-                    <label htmlFor={`toggle-${key}`}>{key}:</label>
+                    <div className="env-var-label-container">
+                      <label htmlFor={`toggle-${key}`}>{key}:</label>
+                      {envVars[key]?.docsUrl && (
+                        <a 
+                          href={envVars[key]?.docsUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="docs-link"
+                          title="Open documentation"
+                        >
+                          <FaExternalLinkAlt />
+                        </a>
+                      )}
+                    </div>
                     <div className="toggle-container">
                       <label className="toggle-switch">
                         <input
                           id={`toggle-${key}`}
                           type="checkbox"
-                          checked={(envVars[key] || defaultValue) === 'true'}
+                          checked={(envVars[key]?.value) === 'true'}
                           onChange={(e) => handleToggleChange(key, e.target.checked)}
                         />
                         <span className="toggle-slider"></span>
                       </label>
                     </div>
+                    {envVars[key]?.description && (
+                      <div className="env-var-description">
+                        <FaInfoCircle className="description-icon" />
+                        <span>{envVars[key]?.description}</span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
-                    <label htmlFor={`env-${key}`}>{key}:</label>
+                    <div className="env-var-label-container">
+                      <label htmlFor={`env-${key}`}>{key}:</label>
+                      {envVars[key]?.docsUrl && (
+                        <a 
+                          href={envVars[key]?.docsUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="docs-link"
+                          title="Open documentation"
+                        >
+                          <FaExternalLinkAlt />
+                        </a>
+                      )}
+                    </div>
                     <div className="input-container">
                       <input
                         id={`env-${key}`}
                         type={
-                          shouldHideField(key)
+                          envVars[key]?.type === EnvType.Password
                             ? visibleFields[key] ? 'text' : 'password'
                             : 'text'
                         }
-                        value={envVars[key] || ''}
+                        value={envVars[key]?.value || ''}
                         onChange={(e) => handleInputChange(key, e.target.value)}
-                        placeholder={defaultValue || ''}
+                        placeholder={envVars[key]?.value || ''}
                       />
-                      {shouldHideField(key) && (
+                      {envVars[key]?.type === EnvType.Password && (
                         <button
                           type="button"
                           className="toggle-visibility-button"
@@ -134,6 +161,12 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
                         </button>
                       )}
                     </div>
+                    {envVars[key]?.description && (
+                      <div className="env-var-description">
+                        <FaInfoCircle className="description-icon" />
+                        <span>{envVars[key]?.description}</span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>

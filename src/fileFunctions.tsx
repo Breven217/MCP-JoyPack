@@ -1,5 +1,5 @@
 import { readTextFile, writeTextFile, BaseDirectory, remove, exists, mkdir } from '@tauri-apps/plugin-fs';
-import { ServerConfig, ServersObject } from './types'; 
+import { CommandType, EnvVariable, ServerConfig, ServersObject } from './types'; 
 import { homeDir } from '@tauri-apps/api/path';
 import { Command } from '@tauri-apps/plugin-shell';
 
@@ -93,7 +93,7 @@ const fetchServerConfigs = async (): Promise<ServerConfig[] | null> => {
   }
 };
 
-export const saveServer = async (server: ServerConfig, envVars: Record<string, string>) => {
+export const saveServer = async (server: ServerConfig, envVars: Record<string, EnvVariable>) => {
   if (!server.installed) {
     await installServer(server);
   }
@@ -164,15 +164,15 @@ export const uninstallServer = async (server: ServerConfig) => {
 export const readEnvFile = async (server: ServerConfig) => {
   try {
     const envContent = await readTextFile(`${ENV_PATH}/${server.name}.env`, { baseDir: BaseDirectory.Home });
-    const envVars: Record<string, string> = {};
     const lines = envContent.split('\n');
     for (const line of lines) {
       const [key, value] = line.split('=');
-      if (key && value) {
-        envVars[key] = value;
+      const envVar = server.env[key];
+      if (envVar) {
+        envVar.value = value;
       }
     }
-    return envVars;
+    return server.env;
   } catch (error) {
     console.error('Error reading env file:', error);
     return null;
@@ -193,10 +193,15 @@ const deleteEnvFile = async (server: ServerConfig) => {
   }
 }
 
-const saveEnvFile = async (server: ServerConfig, envVars: Record<string, string>) => {
+const saveEnvFile = async (server: ServerConfig, envVars: Record<string, EnvVariable>) => {
   try {
+    // Map envVars to a Record<string, string>
+    const stringEnvVars: Record<string, string> = {};
+    for (const [key, value] of Object.entries(envVars)) {
+      stringEnvVars[key] = value.value;
+    }
     // Replace all instances of ~/ with the home directory path
-    const cleanEnvVars = JSON.parse(JSON.stringify(envVars).replace(/~/g, HOME_PATH));
+    const cleanEnvVars = JSON.parse(JSON.stringify(stringEnvVars).replace(/~/g, HOME_PATH));
     let envString = '';
     for (const [key, value] of Object.entries(cleanEnvVars)) {
       envString += `${key}=${value}\n`;
@@ -238,18 +243,22 @@ const setupLocal = async (server: ServerConfig) => {
       console.error('Error cloning repository:', error);
       throw error;
     });
-    // Install dependencies
-    const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
-    await installCommand.execute().catch((error) => {
-      console.error('Error installing dependencies:', error);
-      throw error;
-    });
-    // Build the project
-    const buildCommand = Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']);
-    await buildCommand.execute().catch((error) => {
-      console.error('Error building project:', error);
-      throw error;
-    });
+
+    if (server.localSetup.command === CommandType.Node) {
+      // Install dependencies
+      const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
+      await installCommand.execute().catch((error) => {
+        console.error('Error installing dependencies:', error);
+        throw error;
+      });
+      // Build the project
+      const buildCommand = Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']);
+      await buildCommand.execute().catch((error) => {
+        console.error('Error building project:', error);
+        throw error;
+      });
+    } else if (server.localSetup.command === CommandType.UV) {}
+
     // Create wrapper
     await createEnvWrapper(server);
     return repoPath;
