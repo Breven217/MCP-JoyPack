@@ -81,17 +81,45 @@
           ]
         },
         {
-          "name": "install-brew",
-          "cmd": "/bin/bash",
+          "name": "brew",
+          "cmd": "brew",
           "args": [
-            "-c",
-            "\"NONINTERACTIVE=1 $(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            {
+              "validator": "\\S+"
+            },
+            {
+              "validator": "\\S+"
+            }
           ]
         },
         {
-          "name": "install-via-brew",
-          "cmd": "brew",
+          "name": "refresh-terminal",
+          "cmd": "sh",
           "args": [
+            "-c",
+            "$SHELL"
+          ]
+        },
+        {
+          "name": "uv-sync",
+          "cmd": "uv",
+          "args": [
+            "--prefix",
+            {
+              "validator": "\\S+"
+            },
+            "sync"
+          ]
+        },
+        {
+          "name": "uv-install",
+          "cmd": "uv",
+          "args": [
+            "--prefix",
+            {
+              "validator": "\\S+"
+            },
+            "tool",
             "install",
             {
               "validator": "\\S+"

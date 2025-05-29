@@ -10,19 +10,32 @@ export const setupLocal = async (server: ServerConfig) => {
 	const repoPath = await cloneLocalRepo(server);
 
 	if (server.localSetup.command === CommandType.Node) {
-	//   // Install dependencies
-	//   const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
+	  // Install dependencies
+	  const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
+	  await installCommand.execute().catch((error) => {
+		console.error('Error installing dependencies:', error);
+		throw error;
+	  });
+	  // Build the project
+	  const buildCommand = Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']);
+	  await buildCommand.execute().catch((error) => {
+		console.error('Error building project:', error);
+		throw error;
+	  });
+	} else if (server.localSetup.command === CommandType.UV) {
+	  // Sync
+	  const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
+	  await syncCommand.execute().catch((error) => {
+		error.message = `Error syncing dependencies: ${error.message}`;
+		throw error;
+	  });
+	//   // Install
+	//   const installCommand = Command.create('uv-install', ['--prefix', repoPath, 'tool', 'install', server.localSetup.entryPoint || server.name]);
 	//   await installCommand.execute().catch((error) => {
-	// 	console.error('Error installing dependencies:', error);
+	// 	error.message = `Error installing dependencies: ${error.message}`;
 	// 	throw error;
 	//   });
-	//   // Build the project
-	//   const buildCommand = Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']);
-	//   await buildCommand.execute().catch((error) => {
-	// 	console.error('Error building project:', error);
-	// 	throw error;
-	//   });
-	} else if (server.localSetup.command === CommandType.UV) {}
+	}
 
 	// Create wrapper
 	await createEnvWrapper(server);
@@ -93,27 +106,4 @@ ${server.localSetup.command} ${repoPath}/${server.localSetup.entryPoint}`;
 } catch (error) {
 	console.error('Error creating env wrapper:', error);
 }
-}
-
-export const checkPrerequisite = async (server: ServerConfig): Promise<string | null> => {
-	if (!server.localSetup?.command) {
-		return null;
-	}
-
-	const packageName = server.localSetup.command === CommandType.Node ? 'npm' : 'uv';
-
-	const command = Command.create('which', [packageName]);
-	let installed = false;
-	await command.execute().then((result) => {
-		if (result.code === 0) {
-			installed = true;
-		}
-	}).catch(() => {
-		return null;
-	});
-	if (installed) {
-		console.log(`${packageName} is already installed`);
-		return null;
-	}
-	return `${packageName} is not installed, please install it before continuing`;
 }

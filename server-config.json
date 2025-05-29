@@ -144,6 +144,7 @@
 		"localSetup": {
 			"repo": "https://github.com/rollbar/rollbar-mcp-server.git",
 			"command": "node",
+			"prerequisites": ["node"],
 			"entryPoint": "build/index.js"
 		}
 	},
@@ -153,7 +154,7 @@
 		"description": "This is a small project that implements the MCP protocol and provides tools to interact with our internal tools.\n\nThe goal of this project is to allow models access to internal data from anywhere possible. For example, if we have a design doc in Slite, we want the LLM to read it so that it's generated responses take into account the design doc.",
 		"docsUrl": "https://github.com/breven217/mcp-bamboohr",
 		"mcpConfig": {
-			"command": "/Users/bjoyner/.mcp/repos/mcp-bamboohr/mcp_bamboohr",
+			"command": "/Users/bjoyner/.mcp/repos/mcp-bamboohr/mcp-bamboohr-wrapper.sh",
 			"args": [],
 			"env": {}
 		},
@@ -179,7 +180,8 @@
 		"localSetup": {
 			"repo": "https://github.com/BambooHR/mcp-bamboohr.git",
 			"command": "uv",
-			"entryPoint": "mcp_bamboohr"
+			"prerequisites": ["uv", "vault"],
+			"entryPoint": "mcp-bamboohr"
 		}
 	}
 }

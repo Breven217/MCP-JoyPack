@@ -29,6 +29,7 @@ export type EnvVariable = {
 }
 
 export type LocalSetup = {
+	prerequisites?: string[];
 	repo?: string;
 	command?: CommandType;
 	entryPoint?: string;
