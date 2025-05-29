@@ -9,57 +9,9 @@ export const setupLocal = async (server: ServerConfig) => {
     const repoPath = await cloneLocalRepo(server);
 
     if (server.localSetup?.command === CommandType.Node) {
-      eventBus.updateInstallationProgress({
-        server: server.name,
-        step: 'Dependencies Installation',
-        status: 'in-progress',
-        message: 'Installing npm dependencies...',
-      });
-      
-      const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
-      await installCommand.execute().then(() => {
-        eventBus.updateInstallationProgress({
-          server: server.name,
-          step: 'Dependencies Installation',
-          status: 'complete',
-          message: 'NPM dependencies installed successfully',
-        });
-      }).catch((error: any) => {
-        eventBus.updateInstallationProgress({
-          server: server.name,
-          step: 'Dependencies Installation',
-          status: 'error',
-          message: `Error installing dependencies: ${error.message}`,
-        });
-        console.error('Error installing dependencies:', error);
-        throw error;
-      });
+      await npmBuild(server, repoPath);
     } else if (server.localSetup?.command === CommandType.UV) {
-      eventBus.updateInstallationProgress({
-        server: server.name,
-        step: 'Dependencies Installation',
-        status: 'in-progress',
-        message: 'Syncing Python dependencies...',
-      });
-      
-      const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
-      await syncCommand.execute().then(() => {
-        eventBus.updateInstallationProgress({
-          server: server.name,
-          step: 'Dependencies Installation',
-          status: 'complete',
-          message: 'Python dependencies synced successfully',
-        });
-      }).catch((error: any) => {
-        eventBus.updateInstallationProgress({
-          server: server.name,
-          step: 'Dependencies Installation',
-          status: 'error',
-          message: `Error syncing dependencies: ${error.message}`,
-        });
-        console.error('Error syncing dependencies:', error);
-        throw error;
-      });
+      await uvBuild(server, repoPath);
     }
 
     await createEnvWrapper(server);
@@ -123,6 +75,62 @@ const cloneLocalRepo = async (server: ServerConfig): Promise<string> => {
   });
   return repoPath;
 };
+
+const npmBuild = async (server: ServerConfig, repoPath: string) => {
+	eventBus.updateInstallationProgress({
+        server: server.name,
+        step: 'Dependencies Installation',
+        status: 'in-progress',
+        message: 'Installing npm dependencies...',
+      });
+	
+	const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
+	await installCommand.execute().then(() => {
+	eventBus.updateInstallationProgress({
+		server: server.name,
+		step: 'Dependencies Installation',
+		status: 'complete',
+		message: 'NPM dependencies installed successfully',
+	});
+	}).catch((error: any) => {
+	eventBus.updateInstallationProgress({
+		server: server.name,
+		step: 'Dependencies Installation',
+		status: 'error',
+		message: `Error installing dependencies: ${error.message}`,
+	});
+	console.error('Error installing dependencies:', error);
+	throw error;
+	}); 
+}
+
+const uvBuild = async (server: ServerConfig, repoPath: string) => {
+	eventBus.updateInstallationProgress({
+        server: server.name,
+        step: 'Dependencies Installation',
+        status: 'in-progress',
+        message: 'Syncing Python dependencies...',
+      });
+	
+	const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
+	await syncCommand.execute().then(() => {
+	eventBus.updateInstallationProgress({
+		server: server.name,
+		step: 'Dependencies Installation',
+		status: 'complete',
+		message: 'Python dependencies synced successfully',
+	});
+	}).catch((error: any) => {
+	eventBus.updateInstallationProgress({
+		server: server.name,
+		step: 'Dependencies Installation',
+		status: 'error',
+		message: `Error syncing dependencies: ${error.message}`,
+	});
+	console.error('Error syncing dependencies:', error);
+	throw error;
+	});
+}
 
 const createEnvWrapper = async (server: ServerConfig) => {
   try {
