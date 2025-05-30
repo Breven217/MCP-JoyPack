@@ -11,26 +11,58 @@ A desktop application built with Tauri, React, and TypeScript for managing Model
 - Automatic server configuration from a central repository
 - Docker wrapper support for GitHub Container Registry authentication
 
-## Download and Installation
+## Installation
 
-### Download for macOS
+### One-Line Installation for macOS
 
-<div align="center">
+Open Terminal and run the following command:
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge&logo=apple)](https://github.com/Breven217/MCP-JoyPack/releases/latest/download/MCP-JoyPack-latest.dmg)
-
-</div>
-
-Simply click the button above to download the latest version of MCP JoyPack for macOS.
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Breven217/MCP-JoyPack/releases/latest/download/install.sh)"
+```
 
 > **Note:** MCP JoyPack currently only supports macOS.
 
-### Installation Instructions
+### What the Installer Does
 
-1. Download the `.dmg` file
-2. Open the downloaded file
-3. Drag the application to your Applications folder
-4. You may need to right-click the app and select "Open" the first time
+The installer will:
+- Download the latest version of MCP JoyPack
+- Install it to your Applications folder
+- Configure necessary security settings
+- Create required directories in your home folder (~/.mcp and ~/.codeium/windsurf)
+- Install Homebrew if it's not already installed
+- Install Git if it's not already installed
+- Create a first-run helper script
+
+### What Happens After Installation
+
+The installer will:
+
+1. **Run the first-time setup script automatically**
+2. **Open MCP JoyPack automatically** when installation is complete
+
+When you first launch the app:
+
+1. **If prompted about an unidentified developer**:
+   - Click 'Cancel'
+   - Right-click (or Control+click) on the app icon in Applications
+   - Select "Open" from the context menu
+   - Click "Open" when prompted
+
+2. **Grant Permissions**:
+   - The app will request permission to access files and run commands
+   - These permissions are required for the app to function properly
+
+### Troubleshooting
+
+If you encounter permission issues:
+
+1. Check that you've approved all permission requests
+2. Ensure the directories `~/.mcp` and `~/.codeium/windsurf` exist and are writable
+3. If the app won't open, run this command in Terminal:
+   ```
+   xattr -dr com.apple.quarantine /Applications/MCP-JoyPack.app
+   ```
 
 ### Development Setup
 
