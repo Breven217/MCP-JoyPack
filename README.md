@@ -18,7 +18,7 @@ A desktop application built with Tauri, React, and TypeScript for managing Model
 Open Terminal and run the following command:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://github.com/Breven217/MCP-JoyPack/releases/latest/download/install.sh)"
+curl -L -o /tmp/mcp-install.sh https://raw.githubusercontent.com/Breven217/MCP-JoyPack/main/install.sh && chmod +x /tmp/mcp-install.sh && /tmp/mcp-install.sh
 ```
 
 > **Note:** MCP JoyPack currently only supports macOS.

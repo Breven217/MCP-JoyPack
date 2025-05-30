@@ -30,15 +30,36 @@ curl -L "$RELEASE_URL" -o "$DMG_FILE"
 
 # Mount the DMG file
 echo "Mounting the disk image..."
-hdiutil attach "$DMG_FILE" -nobrowse
+if ! hdiutil attach "$DMG_FILE" -nobrowse; then
+  echo "Error: Failed to mount the disk image."
+  exit 1
+fi
+
+# Verify the app exists in the mounted volume
+if [ ! -d "$MOUNT_POINT/$APP_NAME" ]; then
+  echo "Error: Could not find $APP_NAME in the mounted disk image."
+  hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
+  exit 1
+fi
 
 # Copy the app to the Applications folder
 echo "Installing application to $INSTALL_DIR..."
-cp -R "$MOUNT_POINT/$APP_NAME" "$INSTALL_DIR/"
+if ! cp -R "$MOUNT_POINT/$APP_NAME" "$INSTALL_DIR/"; then
+  echo "Error: Failed to copy the application to $INSTALL_DIR."
+  hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
+  exit 1
+fi
+
+# Verify the app was copied successfully
+if [ ! -d "$INSTALL_DIR/$APP_NAME" ]; then
+  echo "Error: Application was not copied successfully to $INSTALL_DIR."
+  hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
+  exit 1
+fi
 
 # Unmount the DMG
 echo "Cleaning up..."
-hdiutil detach "$MOUNT_POINT" -force
+hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
 
 # Remove quarantine attribute
 echo "Configuring security settings..."
@@ -115,16 +136,24 @@ echo ""
 echo "===== Installation Complete ====="
 echo "MCP JoyPack has been installed to your Applications folder."
 
-# Automatically open the app
-echo "Opening MCP JoyPack..."
-# Use open command with -a flag to specify the application
-open -a "$INSTALL_DIR/$APP_NAME"
-
-echo "IMPORTANT: If prompted about an unidentified developer:"
-echo "1. Click 'Cancel'"
-echo "2. Right-click (or Control+click) on the MCP JoyPack app in Applications"
-echo "3. Select 'Open' from the context menu"
-echo "4. Click 'Open' when prompted"
+# Verify the app exists before trying to open it
+if [ -d "$INSTALL_DIR/$APP_NAME" ]; then
+  echo "Opening MCP JoyPack..."
+  # Use open command with -a flag to specify the application
+  if ! open -a "$INSTALL_DIR/$APP_NAME"; then
+    echo "Warning: Could not open the application automatically."
+    echo "You can open it manually from your Applications folder."
+  fi
+  
+  echo "IMPORTANT: If prompted about an unidentified developer:"
+  echo "1. Click 'Cancel'"
+  echo "2. Right-click (or Control+click) on the MCP JoyPack app in Applications"
+  echo "3. Select 'Open' from the context menu"
+  echo "4. Click 'Open' when prompted"
+else
+  echo "Error: Could not find the application at $INSTALL_DIR/$APP_NAME."
+  echo "Installation may have failed. Please try again or install manually."
+fi
 
 echo ""
 echo "When the app requests permissions to access files or run commands,"
