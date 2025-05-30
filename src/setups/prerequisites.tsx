@@ -48,7 +48,6 @@ export const checkPrerequisite = async (server: ServerConfig): Promise<string | 
 			}
 		})
 		if (installed) {
-			console.log(`${prerequisite} is already installed`);
 			eventBus.updateInstallationProgress({
 				server: server.name,
 				step: `Prerequisite: ${prerequisite}`,
@@ -57,7 +56,6 @@ export const checkPrerequisite = async (server: ServerConfig): Promise<string | 
 			});
 			continue;
 		}
-		console.log(`Installing ${prerequisite}`);
 		eventBus.updateInstallationProgress({
 			server: server.name,
 			step: `Prerequisite: ${prerequisite}`,

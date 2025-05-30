@@ -471,6 +471,15 @@ button:active {
   flex: 1;
 }
 
+.version-info {
+  font-size: 0.75rem;
+  color: var(--bamboo-gray);
+  margin-top: 0.25rem;
+  opacity: 0.8;
+}
+
+/* Update button styles removed */
+
 .app-logo {
   width: 42px;
   height: 42px;

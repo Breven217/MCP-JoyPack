@@ -49,6 +49,8 @@ function App() {
     setNotification(prev => ({ ...prev, visible: false }));
   };
 
+  // No update functions
+
   // Load server data on component mount
   useEffect(() => {
     fetchMCPServers();
@@ -61,6 +63,7 @@ function App() {
         <div className="header-content">
           <h1>MCP JoyPack Dashboard</h1>
           <p>Manage your Model Context Protocol servers</p>
+          <div className="version-info">Version 0.1.0</div>
         </div>
         <button className="refresh-btn" onClick={async () => {
           // Force refresh from GitHub before fetching servers

@@ -11,7 +11,30 @@ A desktop application built with Tauri, React, and TypeScript for managing Model
 - Automatic server configuration from a central repository
 - Docker wrapper support for GitHub Container Registry authentication
 
-## Installation
+## Download and Installation
+
+### Download for macOS
+
+<div align="center">
+
+[![Download for macOS](https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge&logo=apple)](https://github.com/Breven217/MCP-JoyPack/releases/latest/download/MCP-JoyPack_x64.dmg)
+
+</div>
+
+Simply click the button above to download the latest version of MCP JoyPack for macOS.
+
+> **Note:** MCP JoyPack currently only supports macOS.
+
+### Installation Instructions
+
+1. Download the `.dmg` file
+2. Open the downloaded file
+3. Drag the application to your Applications folder
+4. You may need to right-click the app and select "Open" the first time
+
+### Development Setup
+
+If you want to build the application from source:
 
 1. Clone this repository
 2. Install dependencies: `npm install`

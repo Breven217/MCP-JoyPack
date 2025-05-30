@@ -64,14 +64,11 @@ const readExistingConfigFile = async (): Promise<Record<string, any> | null> => 
 const fetchServerConfigs = async (): Promise<ServerConfig[] | null> => {
   try {
     // Fetch from remote source
-    console.log('Fetching server configs from GitHub');
     const response = await fetch(REMOTE_CONFIG_URL, { cache: 'no-cache' });
     
     if (response.ok) {
       const responseText = await response.text();
-      console.log('Response:', responseText);
       const jsonContent = JSON.parse(responseText);
-      console.log('Parsed JSON:', jsonContent);
       const servers: ServerConfig[] = [];
       
       for (const serverName in jsonContent) {
