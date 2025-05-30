@@ -150,6 +150,14 @@ ${server.localSetup.command} ${repoPath}/${server.localSetup.entryPoint}`;
     // Make wrapper executable
     const chmodCommand = Command.create('chmod', ['+x', wrapperPath]);
     await chmodCommand.execute();
+
+    // Update mcpConfig for server
+    server.mcpConfig = {
+      command: wrapperPath,
+      disabledTools: undefined,
+      args: undefined,
+      disabled: undefined
+    };
     
     // Update progress on success
     eventBus.updateInstallationProgress({

@@ -9,6 +9,7 @@ export type ServerConfig = {
 	displayName: string;
 	description: string;
 	docsUrl: string;
+	dockerWrapper: boolean;
 	mcpConfig: MCPServerConfig;
 	env: Record<string, EnvVariable>;
 	prerequisites?: string[];
@@ -17,8 +18,8 @@ export type ServerConfig = {
 
 export type MCPServerConfig = {
 	command: string;
-	disabledTools: string[];
-	args: string[];
+	disabledTools: string[] | undefined;
+	args: string[] | undefined;
 	disabled?: boolean;
 }
 

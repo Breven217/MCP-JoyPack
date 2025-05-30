@@ -103,7 +103,7 @@
 				"--rm",
 				"-i",
 				"--env-file",
-				"~/.mcp/atlassian.env",
+				"~/.mcp/mcp-atlassian.env",
 				"ghcr.io/sooperset/mcp-atlassian:latest"
 			]
 		},
@@ -129,11 +129,6 @@
 		"displayName": "Rollbar",
 		"description": "A Model Context Protocl (MCP) server for Rollbar.",
 		"docsUrl": "https://github.com/rollbar/rollbar-mcp-server",
-		"mcpConfig": {
-			"command": "/Users/bjoyner/.mcp/repos/rollbar-mcp-server/rollbar-wrapper.sh",
-			"args": [],
-			"env": {}
-		},
 		"env": {
 			"ROLLBAR_ACCESS_TOKEN": {
 				"type": "password",
@@ -152,22 +147,19 @@
 		"name": "mcp-bamboohr",
 		"displayName": "Bamboohr (MCP)",
 		"description": "This is a small project that implements the MCP protocol and provides tools to interact with our internal tools.\n\nThe goal of this project is to allow models access to internal data from anywhere possible. For example, if we have a design doc in Slite, we want the LLM to read it so that it's generated responses take into account the design doc.",
-		"docsUrl": "https://github.com/breven217/mcp-bamboohr",
-		"mcpConfig": {
-			"command": "uv",
-		      	"args": [
-				"run",
-				"python",
-				"-m",
-				"mcp_bamboohr"
-		      	]
-		},
-		"prerequisites": ["uv", "vault"],
+		"docsUrl": "https://github.com/BambooHR/mcp-bamboohr",
+		"dockerWrapper": true,
 		"env": {
 			"SLITE_API_KEY": {
 				"type": "password",
 				"value": "",
 				"docsUrl": "https://bamboohr.slite.com/settings/organization/api"
+			},
+			"GITHUB_PERSONAL_ACCESS_TOKEN": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://github.com/settings/tokens/new",
+				"description": "A personal access token for GitHub SSO, be sure to add `read:packages` scope and SSO auth."
 			}
 		}
 	}
