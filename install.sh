@@ -6,14 +6,23 @@ echo "This installer will set up MCP JoyPack on your Mac."
 echo "The application requires permission to access files and run commands."
 
 # Define installation paths and URLs
-APP_NAME="MCP-JoyPack.app"
 INSTALL_DIR="/Applications"
 RELEASE_URL="https://github.com/Breven217/MCP-JoyPack/releases/latest/download/MCP-JoyPack-latest.dmg"
 DMG_FILE="/tmp/MCP-JoyPack-latest.dmg"
-MOUNT_POINT="/Volumes/MCP-JoyPack"
 
-# Check if app is already installed
-if [ -d "$INSTALL_DIR/$APP_NAME" ]; then
+# The mount point might vary based on the DMG label
+# We'll detect it after mounting
+
+# We'll determine the app name after mounting
+APP_NAME="mcp-joypack.app"
+
+# Check if app is already installed (check both capitalization variants)
+if [ -d "$INSTALL_DIR/$APP_NAME" ] || [ -d "$INSTALL_DIR/MCP-JoyPack.app" ]; then
+  EXISTING_APP="$APP_NAME"
+  if [ -d "$INSTALL_DIR/MCP-JoyPack.app" ]; then
+    EXISTING_APP="MCP-JoyPack.app"
+  fi
+  
   echo "MCP JoyPack is already installed. Would you like to reinstall? (y/n)"
   read -r response
   if [[ ! "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
@@ -21,7 +30,7 @@ if [ -d "$INSTALL_DIR/$APP_NAME" ]; then
     exit 0
   fi
   echo "Removing previous installation..."
-  rm -rf "$INSTALL_DIR/$APP_NAME"
+  rm -rf "$INSTALL_DIR/$EXISTING_APP"
 fi
 
 # Download the latest release
@@ -30,21 +39,36 @@ curl -L "$RELEASE_URL" -o "$DMG_FILE"
 
 # Mount the DMG file
 echo "Mounting the disk image..."
-if ! hdiutil attach "$DMG_FILE" -nobrowse; then
+if ! MOUNT_INFO=$(hdiutil attach "$DMG_FILE" -nobrowse); then
   echo "Error: Failed to mount the disk image."
   exit 1
 fi
 
-# Verify the app exists in the mounted volume
-if [ ! -d "$MOUNT_POINT/$APP_NAME" ]; then
-  echo "Error: Could not find $APP_NAME in the mounted disk image."
+# Extract the mount point from the output
+MOUNT_POINT=$(echo "$MOUNT_INFO" | tail -1 | awk '{print $3}')
+if [ -z "$MOUNT_POINT" ]; then
+  echo "Error: Could not determine the mount point."
+  hdiutil detach "$DMG_FILE" -force 2>/dev/null
+  exit 1
+fi
+
+echo "Mounted at: $MOUNT_POINT"
+
+# Find the app in the mounted volume
+APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 1 | head -1)
+if [ -z "$APP_PATH" ]; then
+  echo "Error: Could not find any .app in the mounted disk image."
   hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
   exit 1
 fi
 
+# Extract just the app name from the path
+APP_NAME=$(basename "$APP_PATH")
+echo "Found application: $APP_NAME"
+
 # Copy the app to the Applications folder
 echo "Installing application to $INSTALL_DIR..."
-if ! cp -R "$MOUNT_POINT/$APP_NAME" "$INSTALL_DIR/"; then
+if ! cp -R "$APP_PATH" "$INSTALL_DIR/"; then
   echo "Error: Failed to copy the application to $INSTALL_DIR."
   hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
   exit 1
@@ -57,9 +81,15 @@ if [ ! -d "$INSTALL_DIR/$APP_NAME" ]; then
   exit 1
 fi
 
-# Unmount the DMG
+# Unmount the DMG and remove temporary files
 echo "Cleaning up..."
 hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
+
+# Remove the downloaded DMG file
+if [ -f "$DMG_FILE" ]; then
+  rm "$DMG_FILE"
+  echo "Removed temporary DMG file."
+fi
 
 # Remove quarantine attribute
 echo "Configuring security settings..."
