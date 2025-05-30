@@ -5,6 +5,7 @@ import { CONFIG_PATH, ENV_PATH, getHomePath, REMOTE_CONFIG_URL } from './config'
 import eventBus from '../utils/eventBus';
 import { createAppError } from '../utils/errorTypes';
 import { Command } from '@tauri-apps/plugin-shell';
+import { setupNPX } from './npx';
 
 export const getServers = async (): Promise<ServersObject | null> => {
   try {
@@ -99,9 +100,9 @@ const installServer = async (server: ServerConfig) => {
   try {
     if (server.localSetup) {
       await setupLocal(server);
-    }
-
-    if (server.dockerWrapper) {
+    } else if (server.npxSetup) {
+      await setupNPX(server);
+    } else if (server.dockerWrapper) {
       await setupDockerWrapper(server);
     }
 

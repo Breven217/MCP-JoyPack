@@ -124,6 +124,20 @@
               "validator": "\\S+"
             }
           ]
+        },
+        {
+          "name": "npx-install",
+          "cmd": "npx",
+          "args": [
+            "-y",
+            "@smithery/cli",
+            "install",
+            {
+              "validator": "\\S+"
+            },
+            "--client",
+            "claude"
+          ]
         }
       ]
     }

@@ -140,6 +140,7 @@
 		"localSetup": {
 			"repo": "https://github.com/rollbar/rollbar-mcp-server.git",
 			"command": "node",
+			"buildCommand": "npm",
 			"entryPoint": "build/index.js"
 		}
 	},
@@ -161,6 +162,58 @@
 				"docsUrl": "https://github.com/settings/tokens/new",
 				"description": "A personal access token for GitHub SSO, be sure to add `read:packages` scope and SSO auth."
 			}
+		}
+	},
+	"datadog": {
+		"name": "datadog",
+		"displayName": "DataDog",
+		"description": "MCP server for the Datadog API, enabling incident management and more.",
+		"docsUrl": "https://github.com/winor30/mcp-server-datadog",
+		"env": {
+			"DATADOG_API_KEY": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://app.datadoghq.com/organization-settings/api-keys?id=7acc3e05-ca4d-4b81-847b-e7766e3bf905"
+			},
+			"DATADOG_APP_KEY": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://app.datadoghq.com/organization-settings/application-keys?id=a11bd2f4-9b77-4028-91d0-5a5524b978b8"
+			},
+			"DATADOG_SITE": {
+				"type": "string",
+				"value": "datadoghq.com"
+			}
+		},
+		"prerequisites": ["npx"],
+		"mcpConfig": {
+			"disabledTools": ["mute_host", "unmute_host", "list_downtimes", "schedule_downtime", "cancel_downtime"]
+		},
+		"npxSetup": {
+			"args": ["-y", "@winor30/mcp-server-datadog"],
+			"package": "@winor30/mcp-server-datadog"
+		}
+	},
+	"figma-mcp": {
+		"name": "figma-mcp",
+		"displayName": "Figma",
+		"description": "A ModelContextProtocol server that enables AI assistants to interact with Figma files. This server provides tools for viewing, commenting, and analyzing Figma designs directly through the ModelContextProtocol.",
+		"docsUrl": "https://github.com/MatthewDailey/figma-mcp",
+		"env": {
+			"FIGMA_API_KEY": {
+				"type": "password",
+				"value": "",
+				"docsUrl": "https://www.figma.com",
+				"description": "Get a Figma API Key (figma.com -> click your name top left -> settings -> Security). Grant File content and Comments scopes."
+			}
+		},
+		"prerequisites": ["npx"],
+		"mcpConfig": {
+			"disabledTools": []
+		},
+		"npxSetup": {
+			"args": ["figma-mcp"],
+			"package": "@MatthewDailey/figma-mcp"
 		}
 	}
 }

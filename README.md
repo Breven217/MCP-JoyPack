@@ -134,6 +134,14 @@ Based on the current `server-config.json`, here are the available configuration 
 | `env` | object | Environment variables for the server |
 | `prerequisites` | string[] | Required prerequisites for the server |
 | `localSetup` | object | Configuration for locally installed servers |
+| `npxSetup` | object | Configuration for npx-based servers |
+
+#### npxSetup options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `args` | string[] | Arguments to pass to npx |
+| `package` | string | NPM package to install |
 
 #### mcpConfig options
 
@@ -212,6 +220,18 @@ For servers that need to be cloned from a repository and run locally:
     "value": "",
     "docsUrl": "https://example.com/api-tokens"
   }
+}
+```
+
+#### npx-based Servers
+
+For servers that can be installed using npx:
+
+```json
+"prerequisites": ["npx"],
+"npxSetup": {
+  "args": ["-y", "@org/server-name"],
+  "package": "@org/server-name"
 }
 ```
 

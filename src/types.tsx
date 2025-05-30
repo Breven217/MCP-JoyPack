@@ -14,6 +14,7 @@ export type ServerConfig = {
 	env: Record<string, EnvVariable>;
 	prerequisites?: string[];
 	localSetup: LocalSetup;
+	npxSetup: NpxSetup;
 }
 
 export type MCPServerConfig = {
@@ -48,4 +49,9 @@ export enum CommandType {
 	PNPM = 'pnpm',
 	NPM = 'npm',
 	Docker = 'docker'
+}
+
+export type NpxSetup = {
+	args: string[];
+	package: string;
 }
