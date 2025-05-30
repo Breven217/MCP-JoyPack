@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Display welcome message
-echo "===== MCP JoyPack Installer v0.1.1 ====="
+echo "===== MCP JoyPack Installer v0.1.2 ====="
 echo "This installer will set up MCP JoyPack on your Mac."
 echo "The application requires permission to access files and run commands."
 
