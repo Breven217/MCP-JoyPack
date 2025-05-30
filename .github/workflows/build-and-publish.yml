@@ -49,3 +49,4 @@ jobs:
           releaseBody: ${{ github.event.release.body || 'See the assets to download and install this version.' }}
           releaseDraft: false
           prerelease: ${{ github.event.release.prerelease }}
+          args: --macOS-dmg-name "MCP-JoyPack-latest.dmg"

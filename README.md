@@ -17,7 +17,7 @@ A desktop application built with Tauri, React, and TypeScript for managing Model
 
 <div align="center">
 
-[![Download for macOS](https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge&logo=apple)](https://github.com/Breven217/MCP-JoyPack/releases/latest/download/MCP-JoyPack_x64.dmg)
+[![Download for macOS](https://img.shields.io/badge/Download-macOS-blue?style=for-the-badge&logo=apple)](https://github.com/Breven217/MCP-JoyPack/releases/latest/download/MCP-JoyPack-latest.dmg)
 
 </div>
 
