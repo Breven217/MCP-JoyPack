@@ -137,62 +137,75 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
             </div>
           )}
         </div>
-        <div className="disabled-tools-section">
-          <h4>Disabled Tools</h4>
-          <p className="disabled-tools-description">
-            Specify tools that should be disabled for this server (comma-separated):
-          </p>
-          <div className="disabled-tools-input-container">
-            <input
-              type="text"
-              className="disabled-tools-input"
-              value={server.mcpConfig?.disabledTools ? server.mcpConfig.disabledTools.join(", ") : ""}
-              onChange={(e) => {
-                const toolsArray = e.target.value
-                  .split(",")
-                  .map(tool => tool.trim())
-                  .filter(tool => tool !== "");
-                
-                // Update the server object
-                if (!server.mcpConfig) {
-                  server.mcpConfig = { 
-                    command: '', 
-                    disabledTools: toolsArray,
-                    args: undefined,
-                    disabled: undefined
-                  };
-                } else {
-                  server.mcpConfig.disabledTools = toolsArray;
-                }
-                
-                // Just force a re-render with the current state
-                dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
-              }}
-              placeholder="tool1, tool2, tool3"
-            />
+        {!state.showProgress && (
+          <div className="disabled-tools-section">
+            <h4>Disabled Tools</h4>
+            <p className="disabled-tools-description">
+              Specify tools that should be disabled for this server (comma-separated):
+            </p>
+            <div className="disabled-tools-input-container">
+              <input
+                type="text"
+                className="disabled-tools-input"
+                value={server.mcpConfig?.disabledTools ? server.mcpConfig.disabledTools.join(", ") : ""}
+                onChange={(e) => {
+                  const toolsArray = e.target.value
+                    .split(",")
+                    .map(tool => tool.trim())
+                    .filter(tool => tool !== "");
+                  
+                  // Update the server object
+                  if (!server.mcpConfig) {
+                    server.mcpConfig = { 
+                      command: '', 
+                      disabledTools: toolsArray,
+                      args: undefined,
+                      disabled: undefined
+                    };
+                  } else {
+                    server.mcpConfig.disabledTools = toolsArray;
+                  }
+                  
+                  // Just force a re-render with the current state
+                  dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
+                }}
+                placeholder="tool1, tool2, tool3"
+              />
+            </div>
+            {server.mcpConfig?.disabledTools && server.mcpConfig.disabledTools.length > 0 && (
+              <div className="disabled-tools-list">
+                {server.mcpConfig.disabledTools.map((tool, index) => (
+                  <span key={index} className="disabled-tool-tag">
+                    {tool}
+                    <button 
+                      className="remove-tool-btn"
+                      onClick={() => {
+                        if (server.mcpConfig?.disabledTools) {
+                          server.mcpConfig.disabledTools = server.mcpConfig.disabledTools.filter((_, i) => i !== index);
+                          // Force a re-render with the current state
+                          dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
+                        }
+                      }}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          {server.mcpConfig?.disabledTools && server.mcpConfig.disabledTools.length > 0 && (
+        )}
+        
+        {state.showProgress && server.mcpConfig?.disabledTools && server.mcpConfig.disabledTools.length > 0 && (
+          <div className="disabled-tools-section">
+            <h4>Disabled Tools</h4>
             <div className="disabled-tools-list">
               {server.mcpConfig.disabledTools.map((tool, index) => (
-                <span key={index} className="disabled-tool-tag">
-                  {tool}
-                  <button 
-                    className="remove-tool-btn"
-                    onClick={() => {
-                      if (server.mcpConfig?.disabledTools) {
-                        server.mcpConfig.disabledTools = server.mcpConfig.disabledTools.filter((_, i) => i !== index);
-                        // Force a re-render with the current state
-                        dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
-                      }
-                    }}
-                  >
-                    ×
-                  </button>
-                </span>
+                <span key={index} className="disabled-tool-tag">{tool}</span>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <ModalFooter
           isLoading={isLoading}

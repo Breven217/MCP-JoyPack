@@ -95,6 +95,7 @@ export const saveServer = async (server: ServerConfig, envVars: Record<string, E
     await installServer(server);
   }
   await saveEnvFile(server, envVars);
+  await saveMcpConfig(server);
 }
 
 const installServer = async (server: ServerConfig) => {
@@ -107,6 +108,15 @@ const installServer = async (server: ServerConfig) => {
       await setupDockerWrapper(server);
     }
 
+    return true;
+  } catch (error) {
+    console.error('Error installing server:', error);
+    return false;
+  }
+}
+
+const saveMcpConfig = async (server: ServerConfig) => {
+  if (!server.installed){
     // Update progress
     eventBus.updateInstallationProgress({
       server: server.name,
@@ -114,30 +124,32 @@ const installServer = async (server: ServerConfig) => {
       status: 'in-progress',
       message: 'Saving MCP configuration...',
     });
+  }
 
-    // Make sure the mcp config file exists
-    const configExists = await exists(CONFIG_PATH, { baseDir: BaseDirectory.Home });
-    if (!configExists) {
-      await writeTextFile(CONFIG_PATH, JSON.stringify({ mcpServers: {} }, null, 2), { baseDir: BaseDirectory.Home });
-    }
+  // Make sure the mcp config file exists
+  const configExists = await exists(CONFIG_PATH, { baseDir: BaseDirectory.Home });
+  if (!configExists) {
+    await writeTextFile(CONFIG_PATH, JSON.stringify({ mcpServers: {} }, null, 2), { baseDir: BaseDirectory.Home });
+  }
 
-    // Read existing config
-    const configContent = await readTextFile(CONFIG_PATH, { baseDir: BaseDirectory.Home });
-    const jsonContent = JSON.parse(configContent);
+  // Read existing config
+  const configContent = await readTextFile(CONFIG_PATH, { baseDir: BaseDirectory.Home });
+  const jsonContent = JSON.parse(configContent);
 
-    // Ensure mcpServers object exists
-    if (!jsonContent.mcpServers) {
-      jsonContent.mcpServers = {};
-    }
+  // Ensure mcpServers object exists
+  if (!jsonContent.mcpServers) {
+    jsonContent.mcpServers = {};
+  }
 
-    // Add server to installed servers
-    // replace all instances of "~/" with the home directory
-    server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, HOME_PATH));
-    jsonContent.mcpServers[server.name] = server.mcpConfig;
+  // Add server to installed servers
+  // replace all instances of "~/" with the home directory
+  server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, HOME_PATH));
+  jsonContent.mcpServers[server.name] = server.mcpConfig;
 
-    // Write updated config
-    await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
+  // Write updated config
+  await writeTextFile(CONFIG_PATH, JSON.stringify(jsonContent, null, 2), { baseDir: BaseDirectory.Home });
 
+  if (!server.installed){
     // Update progress
     eventBus.updateInstallationProgress({
       server: server.name,
@@ -145,11 +157,6 @@ const installServer = async (server: ServerConfig) => {
       status: 'complete',
       message: 'MCP configuration saved successfully',
     });
-
-    return true;
-  } catch (error) {
-    console.error('Error installing server:', error);
-    return false;
   }
 }
 
