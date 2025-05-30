@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import "./styles/App.css";
 import ServerCard from "./components/ServerCard";
 import Notification from "./components/Notification";
-import UpdateButton from "./components/UpdateButton";
 import { getServers } from "./setups/configs";
 import { ServerConfig } from "./types";
 import { ShowNotificationFn } from "./utils/notificationUtils";
@@ -64,7 +63,7 @@ function App() {
         <div className="header-content">
           <h1>MCP JoyPack Dashboard</h1>
           <p>Manage your Model Context Protocol servers</p>
-          <UpdateButton className="header-update-button" />
+          <div className="version-info">Version 0.1.0</div>
         </div>
         <button className="refresh-btn" onClick={async () => {
           // Force refresh from GitHub before fetching servers
