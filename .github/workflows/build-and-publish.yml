@@ -10,6 +10,10 @@ on:
         required: true
         default: ''
 
+# Explicitly define permissions needed for release management
+permissions:
+  contents: write # This allows the workflow to upload assets to releases
+
 jobs:
   build-tauri:
     strategy:
