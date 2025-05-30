@@ -59,8 +59,16 @@ jobs:
           if [ -n "$DMG_FILE" ]; then
             # Create a copy with the consistent name
             cp "$DMG_FILE" "./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg"
-            # Upload the consistently named file to the release
-            gh release upload ${{ github.event.inputs.version || github.event.release.tag_name }} "./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg"
           fi
+      
+      # Upload the consistently named file to the release
+      - name: Upload consistent asset to release
+        if: runner.os == 'macOS'
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg
+          asset_name: MCP-JoyPack-latest.dmg
+          asset_content_type: application/x-apple-diskimage
