@@ -79,6 +79,8 @@ MCP JoyPack fetches server configurations from a central GitHub Gist: [https://g
 
 ### Adding a New Server Configuration
 
+UV/UVX servers are currently not supported by MCP JoyPack.
+
 To add a new server to the dashboard, you need to add its configuration to the `server-config.json` file in the Gist. Each server configuration follows this structure:
 
 ```json
