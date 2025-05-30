@@ -78,6 +78,14 @@ Based on the current `server-config.json`, here are the available configuration 
 | `prerequisites` | string[] | Required prerequisites for the server |
 | `localSetup` | object | Configuration for locally installed servers |
 
+#### mcpConfig options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `command` | string | Command to run the MCP server |
+| `disabledTools` | string[] | Tools to disable |
+| `args` | string[] | Arguments to pass to the command |
+
 ### Server Types
 
 #### Docker-based Servers
