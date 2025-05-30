@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Display welcome message
-echo "===== MCP JoyPack Installer v0.1.0 ====="
+echo "===== MCP JoyPack Installer v0.1.1 ====="
 echo "This installer will set up MCP JoyPack on your Mac."
 echo "The application requires permission to access files and run commands."
 
@@ -52,44 +52,50 @@ fi
 
 echo "Mounted at: $MOUNT_POINT"
 
-# Check if the mount point exists
-if [ ! -d "$MOUNT_POINT" ]; then
-  echo "Error: Mount point directory does not exist."
-  # Try to find any mounted volumes that might contain our app
-  echo "Looking for mounted volumes..."
+# Check if the mount point exists and contains "mcp" or "joypack" in its name
+MOUNT_POINT=$(ls -1 /Volumes/ | grep -i "mcp\|joypack" | head -1)
+if [ -z "$MOUNT_POINT" ]; then
+  echo "Error: Could not find a mounted volume with MCP or JoyPack in its name."
+  echo "Available volumes:"
   ls -la /Volumes/
-  
-  # Try to find the app in any volume
-  for vol in /Volumes/*; do
-    echo "Checking $vol for .app files..."
-    ls -la "$vol" 2>/dev/null || true
-    
-    # Look for any .app files
-    APP_PATH=$(find "$vol" -name "*.app" -maxdepth 2 2>/dev/null | head -1)
-    if [ -n "$APP_PATH" ]; then
-      echo "Found app at: $APP_PATH"
-      MOUNT_POINT="$vol"
+  echo "Unmounting any previous DMG..."
+  hdiutil detach "$DMG_FILE" -force 2>/dev/null || true
+  echo "Please try again or install manually."
+  exit 1
+fi
+
+# Set the full path to the mount point
+MOUNT_POINT="/Volumes/$MOUNT_POINT"
+echo "Using mount point: $MOUNT_POINT"
+
+# List contents of the mounted volume
+echo "Contents of $MOUNT_POINT:"
+ls -la "$MOUNT_POINT" || true
+
+# Find the app in the mounted volume - ONLY look for mcp-joypack or MCP-JoyPack apps
+echo "Searching for MCP JoyPack app in $MOUNT_POINT..."
+APP_PATH=$(find "$MOUNT_POINT" -name "*[mM][cC][pP]*[jJ][oO][yY][pP][aA][cC][kK]*.app" -maxdepth 2 2>/dev/null | head -1)
+
+# If not found, try a more general search but verify the app name contains mcp or joypack
+if [ -z "$APP_PATH" ]; then
+  echo "Searching for any app in $MOUNT_POINT..."
+  for app in $(find "$MOUNT_POINT" -name "*.app" -maxdepth 2 2>/dev/null); do
+    app_name=$(basename "$app" | tr '[:upper:]' '[:lower:]')
+    if [[ "$app_name" == *"mcp"* ]] || [[ "$app_name" == *"joypack"* ]]; then
+      APP_PATH="$app"
+      echo "Found MCP JoyPack app: $APP_PATH"
       break
     fi
   done
-  
-  if [ -z "$APP_PATH" ]; then
-    echo "Error: Could not find any .app in mounted volumes."
-    exit 1
-  fi
-else
-  # List contents of the mounted volume
-  echo "Contents of $MOUNT_POINT:"
-  ls -la "$MOUNT_POINT" || true
-  
-  # Find the app in the mounted volume
-  echo "Searching for .app files in $MOUNT_POINT..."
-  APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 2 2>/dev/null | head -1)
-  if [ -z "$APP_PATH" ]; then
-    echo "Error: Could not find any .app in the mounted disk image."
-    hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
-    exit 1
-  fi
+fi
+
+# If still not found, exit with error
+if [ -z "$APP_PATH" ]; then
+  echo "Error: Could not find MCP JoyPack app in the mounted disk image."
+  echo "This is what was found in the mounted volume:"
+  find "$MOUNT_POINT" -type f -maxdepth 3 | grep -v ".DS_Store"
+  hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
+  exit 1
 fi
 
 echo "Found app at: $APP_PATH"
