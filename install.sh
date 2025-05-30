@@ -54,8 +54,13 @@ fi
 
 echo "Mounted at: $MOUNT_POINT"
 
-# Find the app in the mounted volume
-APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 1 | head -1)
+# List contents of the mounted volume for debugging
+echo "Contents of mounted volume:"
+ls -la "$MOUNT_POINT"
+
+# Find the app in the mounted volume (search more thoroughly)
+echo "Searching for .app files..."
+APP_PATH=$(find "$MOUNT_POINT" -name "*.app" | head -1)
 if [ -z "$APP_PATH" ]; then
   echo "Error: Could not find any .app in the mounted disk image."
   hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
