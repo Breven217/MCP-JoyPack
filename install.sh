@@ -194,11 +194,26 @@ mkdir -p "$HOME/.mcp"
 mkdir -p "$HOME/.codeium/windsurf"
 print_success "Directories created successfully."
 
-# Copy the update script to the .mcp directory
-print_info "Setting up update script..."
-cp "$(dirname "$0")/update.sh" "$HOME/.mcp/update.sh"
+# Always download the latest update script from GitHub
+print_header "Update Script Setup"
+print_info "Downloading latest update script from GitHub..."
+curl -L "https://raw.githubusercontent.com/Breven217/MCP-JoyPack/main/update.sh" -o "$HOME/.mcp/update.sh"
 chmod +x "$HOME/.mcp/update.sh"
-print_success "Update script installed."
+if [ -f "$HOME/.mcp/update.sh" ] && [ -s "$HOME/.mcp/update.sh" ]; then
+  print_success "Latest update script downloaded and installed."
+else
+  print_error "Failed to download update script from GitHub."
+  
+  # Fallback to local copy if available
+  if [ -f "$(dirname "$0")/update.sh" ]; then
+    print_info "Falling back to local update script copy..."
+    cp "$(dirname "$0")/update.sh" "$HOME/.mcp/update.sh"
+    chmod +x "$HOME/.mcp/update.sh"
+    print_success "Local update script installed as fallback."
+  else
+    print_error "No update script available. Updates may not work properly."
+  fi
+fi
 
 # Set permissions
 print_info "Setting permissions..."
