@@ -143,6 +143,39 @@ echo "Setting permissions..."
 chmod -R 755 "$HOME/.mcp"
 chmod -R 755 "$HOME/.codeium/windsurf"
 
+# Create a permissions file for Homebrew and Node operations
+echo "Setting up permissions for Homebrew and Node..."
+cat > "$HOME/.mcp/brew_permissions.sh" << 'EOL'
+#!/bin/bash
+# This script grants permissions for Homebrew and Node operations
+
+# Ensure Homebrew directory has correct permissions
+if [ -d "/opt/homebrew" ]; then
+  # For Apple Silicon Macs
+  sudo chown -R $(whoami):admin /opt/homebrew
+  sudo chmod -R 755 /opt/homebrew
+elif [ -d "/usr/local/Homebrew" ]; then
+  # For Intel Macs
+  sudo chown -R $(whoami):admin /usr/local/Homebrew
+  sudo chmod -R 755 /usr/local/Homebrew
+fi
+
+# Ensure global npm directory has correct permissions
+NPM_PREFIX=$(npm config get prefix)
+if [ -n "$NPM_PREFIX" ]; then
+  sudo chown -R $(whoami):admin "$NPM_PREFIX"
+  sudo chmod -R 755 "$NPM_PREFIX"
+fi
+
+echo "Permissions set successfully."
+EOL
+
+chmod +x "$HOME/.mcp/brew_permissions.sh"
+
+# Inform user about permissions
+echo "NOTE: To grant full permissions for Homebrew and Node operations,"
+echo "you may need to run: sudo $HOME/.mcp/brew_permissions.sh"
+
 # Install Homebrew if missing
 echo "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
@@ -163,6 +196,20 @@ if ! command -v brew &> /dev/null; then
   else
     echo "Homebrew installation skipped. Some features will not work properly."
   fi
+fi
+
+# Set proper permissions for Homebrew directories
+echo "Setting up Homebrew permissions..."
+if [ -d "/opt/homebrew" ]; then
+  # For Apple Silicon Macs
+  echo "Setting permissions for /opt/homebrew..."
+  sudo chown -R $(whoami):admin /opt/homebrew 2>/dev/null || true
+  sudo chmod -R 755 /opt/homebrew 2>/dev/null || true
+elif [ -d "/usr/local/Homebrew" ]; then
+  # For Intel Macs
+  echo "Setting permissions for /usr/local/Homebrew..."
+  sudo chown -R $(whoami):admin /usr/local/Homebrew 2>/dev/null || true
+  sudo chmod -R 755 /usr/local/Homebrew 2>/dev/null || true
 fi
 
 # Check if git is installed, install if missing
@@ -190,7 +237,35 @@ if ! command -v git &> /dev/null; then
     exit 1
 fi
 
-echo "Environment check complete. You can now launch MCP JoyPack."
+# Set up Homebrew permissions
+echo "Setting up Homebrew permissions..."
+if [ -d "/opt/homebrew" ]; then
+    # For Apple Silicon Macs
+    echo "Setting permissions for /opt/homebrew..."
+    sudo chown -R $(whoami):admin /opt/homebrew 2>/dev/null || true
+    sudo chmod -R 755 /opt/homebrew 2>/dev/null || true
+elif [ -d "/usr/local/Homebrew" ]; then
+    # For Intel Macs
+    echo "Setting permissions for /usr/local/Homebrew..."
+    sudo chown -R $(whoami):admin /usr/local/Homebrew 2>/dev/null || true
+    sudo chmod -R 755 /usr/local/Homebrew 2>/dev/null || true
+fi
+
+# Set up global npm directory permissions if it exists
+if [ -d "$HOME/.npm-global" ]; then
+    echo "Setting permissions for npm global directory..."
+    chmod -R 755 "$HOME/.npm-global" 2>/dev/null || true
+fi
+
+# Create a .npmrc file to set up a custom global directory if it doesn't exist
+if [ ! -f "$HOME/.npmrc" ]; then
+    echo "Setting up npm configuration..."
+    mkdir -p "$HOME/.npm-global"
+    echo "prefix=$HOME/.npm-global" > "$HOME/.npmrc"
+    chmod 644 "$HOME/.npmrc"
+fi
+
+echo "Environment setup complete. You can now launch MCP JoyPack."
 EOL
 
 chmod +x "$HOME/.mcp/first-run.sh"
