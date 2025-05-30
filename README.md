@@ -9,6 +9,7 @@ A desktop application built with Tauri, React, and TypeScript for managing Model
 - Enable/disable servers with a single click
 - Support for Docker-based and locally installed MCP servers
 - Automatic server configuration from a central repository
+- Docker wrapper support for GitHub Container Registry authentication
 
 ## Installation
 
@@ -32,6 +33,7 @@ To add a new server to the dashboard, you need to add its configuration to the `
     "displayName": "Human-Readable Server Name",
     "description": "A brief description of the server",
     "docsUrl": "https://github.com/org/repo",
+    "dockerWrapper": false,
     "mcpConfig": {
       "command": "docker",
       "disabledTools": [],
@@ -45,12 +47,36 @@ To add a new server to the dashboard, you need to add its configuration to the `
       ]
     },
     "env": {
-      "ENV_VAR_1": "default-value",
-      "ENV_VAR_2": ""
+      "ENV_VAR_1": {
+        "type": "string",
+        "value": "default-value"
+      },
+      "ENV_VAR_2": {
+        "type": "password",
+        "value": "",
+        "docsUrl": "https://example.com/docs",
+        "description": "Description of this environment variable"
+      }
     }
   }
 }
 ```
+
+### Server Configuration Options
+
+Based on the current `server-config.json`, here are the available configuration options:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `name` | string | Internal name of the server (used as identifier) |
+| `displayName` | string | Human-readable name shown in the UI |
+| `description` | string | Detailed description of the server |
+| `docsUrl` | string | URL to the server's documentation |
+| `dockerWrapper` | boolean | Whether to use a Docker wrapper for GitHub Container Registry authentication |
+| `mcpConfig` | object | Configuration for running the MCP server |
+| `env` | object | Environment variables for the server |
+| `prerequisites` | string[] | Required prerequisites for the server |
+| `localSetup` | object | Configuration for locally installed servers |
 
 ### Server Types
 
@@ -73,21 +99,56 @@ For servers that run in Docker containers:
 }
 ```
 
+#### Docker with GitHub Container Registry Authentication
+
+For servers that require authentication with GitHub Container Registry:
+
+```json
+"dockerWrapper": true,
+"env": {
+  "SLITE_API_KEY": {
+    "type": "password",
+    "value": "",
+    "docsUrl": "https://example.com/api-key"
+  },
+  "GITHUB_PERSONAL_ACCESS_TOKEN": {
+    "type": "password",
+    "value": "",
+    "docsUrl": "https://github.com/settings/tokens/new",
+    "description": "A personal access token for GitHub SSO, be sure to add `read:packages` scope and SSO auth."
+  }
+}
+```
+
 #### Local Repository Servers
 
 For servers that need to be cloned from a repository and run locally:
 
 ```json
-"mcpConfig": {
-  "command": "~/.mcp/repos/repo-name/server-wrapper.sh",
-  "args": []
-},
-"env": {
-  "API_TOKEN": ""
-},
+"prerequisites": ["node"],
 "localSetup": {
   "repo": "https://github.com/org/repo.git",
   "command": "node",
   "entryPoint": "build/index.js"
+},
+"env": {
+  "API_TOKEN": {
+    "type": "password",
+    "value": "",
+    "docsUrl": "https://example.com/api-tokens"
+  }
+}
+```
+
+### Environment Variable Configuration
+
+Environment variables can be configured with the following properties:
+
+```json
+"ENV_VARIABLE_NAME": {
+  "type": "string" | "password",  // Use "password" for sensitive data
+  "value": "default-value",       // Default value or empty string
+  "docsUrl": "https://example.com/docs",  // Optional link to documentation
+  "description": "Description of this variable"  // Optional description
 }
 ```

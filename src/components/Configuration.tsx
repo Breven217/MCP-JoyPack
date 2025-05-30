@@ -109,7 +109,7 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
             <div className="info-notification">
               <div className="info-icon">ℹ️</div>
               <p>
-                A Docker wrapper will be used which will authenticate to GitHub Container Registry using the provided <code>GITHUB_PERSONAL_ACCESS_TOKEN</code> before pulling the image.
+                A Docker wrapper will be used which will authenticate to GitHub Container Registry using the provided <code>GITHUB_PERSONAL_ACCESS_TOKEN</code> before pulling the image.  This may affect your GitHub authentication.
               </p>
             </div>
           )}
