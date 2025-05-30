@@ -10,10 +10,6 @@ on:
         required: true
         default: ''
 
-# Explicitly define permissions needed for release management
-permissions:
-  contents: write # This allows the workflow to upload assets to releases
-
 jobs:
   build-tauri:
     strategy:
@@ -49,4 +45,18 @@ jobs:
           releaseBody: ${{ github.event.release.body || 'See the assets to download and install this version.' }}
           releaseDraft: false
           prerelease: ${{ github.event.release.prerelease }}
-          args: -- --macOS-dmg-name "MCP-JoyPack-latest.dmg"
+
+      # Create a copy of the DMG with a consistent name for direct downloads
+      - name: Create consistent download asset
+        if: runner.os == 'macOS'
+        run: |
+          # Find the DMG file that was just created
+          DMG_FILE=$(find ./src-tauri/target/release/bundle/dmg -name "*.dmg" -type f | head -n 1)
+          if [ -n "$DMG_FILE" ]; then
+            # Create a copy with the consistent name
+            cp "$DMG_FILE" "./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg"
+            # Upload the consistently named file to the release
+            gh release upload ${{ github.event.inputs.version || github.event.release.tag_name }} "./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
