@@ -410,4 +410,4 @@ print_warning "When the app requests permissions to access files or run commands
 print_warning "please approve these requests for the app to function properly."
 
 print_header "Thank You"
-print_success "Thank you for installing MCP JoyPack v0.1.2!"
+print_success "Thank you for installing MCP JoyPack!"
