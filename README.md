@@ -143,6 +143,15 @@ Based on the current `server-config.json`, here are the available configuration 
 | `disabledTools` | string[] | Tools to disable |
 | `args` | string[] | Arguments to pass to the command |
 
+#### localSetup options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `repo` | string | URL of the repository |
+| `command` | CommandType | Command to run the server |
+| `entryPoint` | string | Entry point for the server |
+| `buildCommand` | string | Command to build the server |
+
 ### Server Types
 
 #### Docker-based Servers

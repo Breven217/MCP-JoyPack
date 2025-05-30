@@ -15,11 +15,10 @@ const PREREQUISITES = {
 			['install', 'uv'],
 		]
 	},
-	Vault: {
-		name: 'vault',
+	PNPM: {
+		name: 'pnpm',
 		commands: [
-			['tap', 'hashicorp/tap'],
-			['install', 'hashicorp/tap/vault'],
+			['install', 'pnpm'],
 		]
 	}
 }

@@ -113,33 +113,16 @@
           ]
         },
         {
-          "name": "uv-sync",
-          "cmd": "uv",
+          "name": "pnpm",
+          "cmd": "pnpm",
           "args": [
             "--prefix",
             {
               "validator": "\\S+"
             },
-            "sync"
-          ]
-        },
-        {
-          "name": "uv-tool-install",
-          "cmd": "uv",
-          "args": [
-            "tool",
-            "install",
             {
               "validator": "\\S+"
             }
-          ]
-        },
-        {
-          "name": "vault-sync-env",
-          "cmd": "sh",
-          "args": [
-            "-c",
-            "source ~/repos/setup/helpers.sh && vault sync-env shared-product-development/dev_exports"
           ]
         }
       ]

@@ -34,6 +34,7 @@ export type LocalSetup = {
 	repo?: string;
 	command?: CommandType;
 	entryPoint?: string;
+	buildCommand?: string;
 }
 
 export enum EnvType {
@@ -44,5 +45,7 @@ export enum EnvType {
 export enum CommandType {
 	Node = 'node',
 	UV = 'uv',
+	PNPM = 'pnpm',
+	NPM = 'npm',
 	Docker = 'docker'
 }

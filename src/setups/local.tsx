@@ -10,10 +10,12 @@ export const setupLocal = async (server: ServerConfig) => {
   try {
 	const repoPath = await cloneLocalRepo(server);
 
-	if (server.localSetup?.command === CommandType.Node) {
+	if (server.localSetup?.buildCommand === CommandType.NPM) {
 		await npmBuild(server, repoPath);
-	} else if (server.localSetup?.command === CommandType.UV) {
+	} else if (server.localSetup?.buildCommand === CommandType.UV) {
 		await uvBuild(server, repoPath);
+	} else if (server.localSetup?.buildCommand === CommandType.PNPM) {
+		await pnpmBuild(server, repoPath);
 	}
 	await createEnvWrapper(server);
 	return repoPath;
@@ -83,18 +85,18 @@ const npmBuild = async (server: ServerConfig, repoPath: string): Promise<void> =
   const installCommand = Command.create('npm-install', ['--prefix', repoPath, 'install']);
   await executeInstallStep(
     server,
-    'Dependencies Installation',
+    'npm Installation',
     'Installing npm dependencies...',
     installCommand,
-    'NPM dependencies installed successfully'
+    'npm dependencies installed successfully'
   );
 
   await executeInstallStep(
-	server,
-	"Build NPM",
-	"Building NPM dependencies...",
-	Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']),
-	"NPM dependencies built successfully"
+    server,
+    "npm Build",
+    "Building npm dependencies...",
+    Command.create('npm-build', ['--prefix', repoPath, 'run', 'build']),
+    "npm dependencies built successfully"
   )
 }
 
@@ -104,15 +106,30 @@ const npmBuild = async (server: ServerConfig, repoPath: string): Promise<void> =
  * @param repoPath Path to the repository
  */
 const uvBuild = async (server: ServerConfig, repoPath: string): Promise<void> => {
-	//TODO test
-	const syncCommand = Command.create('uv-sync', ['--prefix', repoPath, 'sync']);
-	await executeInstallStep(
-		server,
-		'Dependencies Installation',
-		'Syncing Python dependencies...',
-		syncCommand,
-		'Python dependencies synced successfully'
-	);
+	//TODO
+}
+
+/**
+ * Build NPM dependencies for a server
+ * @param server Server configuration
+ * @param repoPath Path to the repository
+ */
+const pnpmBuild = async (server: ServerConfig, repoPath: string): Promise<void> => {
+  await executeInstallStep(
+    server,
+    'pnpm Installation',
+    'Installing pnpm dependencies...',
+    Command.create('pnpm', ['--prefix', repoPath, 'install']),
+    'pnpm dependencies installed successfully'
+  );
+
+  await executeInstallStep(
+    server,
+    "Build pnpm",
+    "Building pnpm dependencies...",
+    Command.create('pnpm', ['--prefix', repoPath, 'build']),
+    "pnpm dependencies built successfully"
+  )
 }
 
 /**
