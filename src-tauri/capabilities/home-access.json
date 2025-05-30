@@ -14,6 +14,7 @@
     "fs:allow-write-text-file",
     "fs:allow-remove",
     "shell:allow-execute",
+    "shell:allow-spawn",
     {
       "identifier": "fs:scope",
       "allow": [
@@ -110,6 +111,13 @@
           "args": [
             "-c",
             "$SHELL"
+          ]
+        },
+        {
+          "name": "run-update",
+          "cmd": "bash",
+          "args": [
+            "$HOME/.mcp/update.sh"
           ]
         },
         {

@@ -194,6 +194,12 @@ mkdir -p "$HOME/.mcp"
 mkdir -p "$HOME/.codeium/windsurf"
 print_success "Directories created successfully."
 
+# Copy the update script to the .mcp directory
+print_info "Setting up update script..."
+cp "$(dirname "$0")/update.sh" "$HOME/.mcp/update.sh"
+chmod +x "$HOME/.mcp/update.sh"
+print_success "Update script installed."
+
 # Set permissions
 print_info "Setting permissions..."
 chmod -R 755 "$HOME/.mcp"
