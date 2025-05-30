@@ -1,7 +1,7 @@
 import { readTextFile, writeTextFile, BaseDirectory, remove, exists } from '@tauri-apps/plugin-fs';
 import { EnvVariable, ServerConfig, ServersObject } from '../types'; 
 import { setupLocal, tearDownLocalRepo } from './local';
-import { CONFIG_PATH, ENV_PATH, HOME_PATH, REMOTE_CONFIG_URL } from './config';
+import { CONFIG_PATH, ENV_PATH, getHomePath, REMOTE_CONFIG_URL } from './config';
 import eventBus from '../utils/eventBus';
 import { createAppError } from '../utils/errorTypes';
 import { Command } from '@tauri-apps/plugin-shell';
@@ -140,7 +140,8 @@ const saveMcpConfig = async (server: ServerConfig) => {
 
   // Add server to installed servers
   // replace all instances of "~/" with the home directory
-  server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, HOME_PATH));
+  const homePath = await getHomePath();
+  server.mcpConfig = JSON.parse(JSON.stringify(server.mcpConfig).replace(/~/g, homePath));
   jsonContent.mcpServers[server.name] = server.mcpConfig;
 
   // Write updated config
@@ -216,13 +217,14 @@ const deleteEnvFile = async (server: ServerConfig) => {
 
 const saveEnvFile = async (server: ServerConfig, envVars: Record<string, EnvVariable>) => {
   try {
-    // Map envVars to a Record<string, string>
+    // Create a flat object with string values
     const stringEnvVars: Record<string, string> = {};
     for (const [key, value] of Object.entries(envVars)) {
       stringEnvVars[key] = value.value;
     }
     // Replace all instances of ~/ with the home directory path
-    const cleanEnvVars = JSON.parse(JSON.stringify(stringEnvVars).replace(/~/g, HOME_PATH));
+    const homePath = await getHomePath();
+    const cleanEnvVars = JSON.parse(JSON.stringify(stringEnvVars).replace(/~/g, homePath));
     let envString = '';
     for (const [key, value] of Object.entries(cleanEnvVars)) {
       envString += `${key}=${value}\n`;
@@ -251,8 +253,9 @@ export const toggleServerEnabled = async (server: ServerConfig) => {
 const setupDockerWrapper = async (server: ServerConfig) => {
   try {
     // Prepare paths
-    const wrapperPath = `${HOME_PATH}/${ENV_PATH}/${server.name}-docker-wrapper.sh`;
-    const envPath = `${HOME_PATH}/${ENV_PATH}/${server.name}.env`;
+    const homePath = await getHomePath();
+    const wrapperPath = `${homePath}/${ENV_PATH}/${server.name}-docker-wrapper.sh`;
+    const envPath = `${homePath}/${ENV_PATH}/${server.name}.env`;
 
     // Update progress
     eventBus.updateInstallationProgress({

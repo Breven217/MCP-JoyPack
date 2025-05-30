@@ -1,5 +1,5 @@
 import { ServerConfig, CommandType } from "../types";
-import { ENV_PATH, HOME_PATH, REPO_PATH } from './config';
+import { ENV_PATH, getHomePath, REPO_PATH } from './config';
 import { Command } from "@tauri-apps/plugin-shell";
 import { writeTextFile, BaseDirectory, remove, exists, mkdir } from '@tauri-apps/plugin-fs';
 import eventBus from '../utils/eventBus';
@@ -29,7 +29,8 @@ export const tearDownLocalRepo = async (server: ServerConfig) => {
       throw new Error('Server does not have a special repository URL');
     }
     const repoName = server.localSetup.repo.split('/').pop()?.replace('.git', '') || 'repo';
-    const repoPath = `${HOME_PATH}/${REPO_PATH}/${repoName}`;
+    const homePath = await getHomePath();
+    const repoPath = `${homePath}/${REPO_PATH}/${repoName}`;
     const existing = await exists(repoPath, { baseDir: BaseDirectory.Home });
     if (!existing) {
       return;
@@ -51,7 +52,8 @@ const cloneLocalRepo = async (server: ServerConfig): Promise<string> => {
   }
   
   try {
-    const directoryPath = `${HOME_PATH}/${REPO_PATH}`;
+    const homePath = await getHomePath();
+    const directoryPath = `${homePath}/${REPO_PATH}`;
     await mkdir(directoryPath, { recursive: true, baseDir: BaseDirectory.Home });
     const repoName = server.localSetup.repo.split('/').pop()?.replace('.git', '') || 'repo';
     const repoPath = `${directoryPath}/${repoName}`;
@@ -128,10 +130,11 @@ const createEnvWrapper = async (server: ServerConfig): Promise<void> => {
     }
     
     // Prepare paths
+    const homePath = await getHomePath();
     const repoName = server.localSetup.repo?.split('/').pop()?.replace('.git', '') || 'repo';
-    const repoPath = `${HOME_PATH}/${REPO_PATH}/${repoName}`;
+    const repoPath = `${homePath}/${REPO_PATH}/${repoName}`;
     const wrapperPath = `${repoPath}/${server.name}-wrapper.sh`;
-    const envPath = `${HOME_PATH}/${ENV_PATH}/${server.name}.env`;
+    const envPath = `${homePath}/${ENV_PATH}/${server.name}.env`;
 
     // Update progress
     eventBus.updateInstallationProgress({
