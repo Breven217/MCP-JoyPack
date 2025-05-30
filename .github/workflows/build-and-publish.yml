@@ -59,6 +59,8 @@ jobs:
           if [ -n "$DMG_FILE" ]; then
             # Create a copy with the consistent name
             cp "$DMG_FILE" "./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg"
+            # Copy the install script to the release directory
+            cp "./install.sh" "./src-tauri/target/release/bundle/dmg/install.sh"
           fi
       
       # Upload the consistently named file to the release
@@ -72,3 +74,15 @@ jobs:
           asset_path: ./src-tauri/target/release/bundle/dmg/MCP-JoyPack-latest.dmg
           asset_name: MCP-JoyPack-latest.dmg
           asset_content_type: application/x-apple-diskimage
+          
+      # Upload the install script to the release
+      - name: Upload install script to release
+        if: runner.os == 'macOS'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./src-tauri/target/release/bundle/dmg/install.sh
+          asset_name: install.sh
+          asset_content_type: text/x-shellscript
