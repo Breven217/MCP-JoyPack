@@ -52,6 +52,9 @@ export default function ServerCard({ server, onRefresh, showNotification }: Serv
 	
 	const handleConfigSave = useCallback(async (envVars: Record<string, EnvVariable>) => {
 		await saveServerConfig(envVars);
+		if (server.installed) {
+			handleConfigClose();
+		}
 	}, [saveServerConfig]);
 	
 	const handleUninstall = useCallback(async () => {

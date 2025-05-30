@@ -66,22 +66,24 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
   }, [dispatch]);
 
   const handleSave = useCallback(async () => {
-    // Start installation process
-    dispatch({ type: 'START_INSTALLATION' });
-    
-    // Emit initial installation event
-    eventBus.updateInstallationProgress({
-      server: server.name,
-      step: 'Setup Started',
-      status: 'in-progress',
-      message: `Setting up ${server.displayName || server.name}...`,
-    });
-    
-    // Check prerequisites
-    const message = await checkPrerequisite(server);
-    if (message) {
-      dispatch({ type: 'PREREQUISITES_FAILED', message });
-      return;
+    if (!server.installed) {
+      // Start installation process
+      dispatch({ type: 'START_INSTALLATION' });
+      
+      // Emit initial installation event
+      eventBus.updateInstallationProgress({
+        server: server.name,
+        step: 'Setup Started',
+        status: 'in-progress',
+        message: `Setting up ${server.displayName || server.name}...`,
+      });
+      
+      // Check prerequisites
+      const message = await checkPrerequisite(server);
+      if (message) {
+        dispatch({ type: 'PREREQUISITES_FAILED', message });
+        return;
+      }
     }
 
     // Save environment variables and continue with installation
@@ -132,6 +134,62 @@ const Configuration = ({ server, isOpen, onClose, onSave, isInstall = false, isL
             <div className="installation-section">
               <h3 className="section-title">Installation Progress</h3>
               <InstallationProgress serverName={server.name} />
+            </div>
+          )}
+        </div>
+        <div className="disabled-tools-section">
+          <h4>Disabled Tools</h4>
+          <p className="disabled-tools-description">
+            Specify tools that should be disabled for this server (comma-separated):
+          </p>
+          <div className="disabled-tools-input-container">
+            <input
+              type="text"
+              className="disabled-tools-input"
+              value={server.mcpConfig?.disabledTools ? server.mcpConfig.disabledTools.join(", ") : ""}
+              onChange={(e) => {
+                const toolsArray = e.target.value
+                  .split(",")
+                  .map(tool => tool.trim())
+                  .filter(tool => tool !== "");
+                
+                // Update the server object
+                if (!server.mcpConfig) {
+                  server.mcpConfig = { 
+                    command: '', 
+                    disabledTools: toolsArray,
+                    args: undefined,
+                    disabled: undefined
+                  };
+                } else {
+                  server.mcpConfig.disabledTools = toolsArray;
+                }
+                
+                // Just force a re-render with the current state
+                dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
+              }}
+              placeholder="tool1, tool2, tool3"
+            />
+          </div>
+          {server.mcpConfig?.disabledTools && server.mcpConfig.disabledTools.length > 0 && (
+            <div className="disabled-tools-list">
+              {server.mcpConfig.disabledTools.map((tool, index) => (
+                <span key={index} className="disabled-tool-tag">
+                  {tool}
+                  <button 
+                    className="remove-tool-btn"
+                    onClick={() => {
+                      if (server.mcpConfig?.disabledTools) {
+                        server.mcpConfig.disabledTools = server.mcpConfig.disabledTools.filter((_, i) => i !== index);
+                        // Force a re-render with the current state
+                        dispatch({ type: 'SET_ENV_VARS', envVars: { ...state.envVars } });
+                      }
+                    }}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
             </div>
           )}
         </div>

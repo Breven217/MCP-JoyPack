@@ -279,7 +279,7 @@ docker run --rm -i --env-file ${envPath} ghcr.io/bamboohr/mcp-bamboohr:latest`;
     // Update mcpConfig for server
     server.mcpConfig = {
       command: wrapperPath,
-      disabledTools: undefined,
+      disabledTools: server.mcpConfig?.disabledTools || [],
       args: undefined,
       disabled: undefined
     };

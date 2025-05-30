@@ -154,7 +154,7 @@ ${server.localSetup.command} ${repoPath}/${server.localSetup.entryPoint}`;
     // Update mcpConfig for server
     server.mcpConfig = {
       command: wrapperPath,
-      disabledTools: undefined,
+      disabledTools: server.mcpConfig?.disabledTools || [],
       args: undefined,
       disabled: undefined
     };
