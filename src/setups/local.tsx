@@ -13,7 +13,8 @@ export const setupLocal = async (server: ServerConfig) => {
 	if (server.localSetup?.buildCommand === CommandType.NPM) {
 		await npmBuild(server, repoPath);
 	} else if (server.localSetup?.buildCommand === CommandType.UV) {
-		await uvBuild(server, repoPath);
+		throw new Error('UV build command not implemented');
+		// await uvBuild(server, repoPath);
 	} else if (server.localSetup?.buildCommand === CommandType.PNPM) {
 		await pnpmBuild(server, repoPath);
 	}
@@ -100,14 +101,14 @@ const npmBuild = async (server: ServerConfig, repoPath: string): Promise<void> =
   )
 }
 
-/**
- * Build Python dependencies using UV for a server
- * @param server Server configuration
- * @param repoPath Path to the repository
- */
-const uvBuild = async (server: ServerConfig, repoPath: string): Promise<void> => {
-	//TODO
-}
+// /**
+//  * Build Python dependencies using UV for a server
+//  * @param server Server configuration
+//  * @param repoPath Path to the repository
+//  */
+// const uvBuild = async (server: ServerConfig, repoPath: string): Promise<void> => {
+// 	//TODO
+// }
 
 /**
  * Build NPM dependencies for a server
