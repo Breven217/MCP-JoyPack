@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Display welcome message
-echo "===== MCP JoyPack Installer ====="
+echo "===== MCP JoyPack Installer v0.1.0 ====="
 echo "This installer will set up MCP JoyPack on your Mac."
 echo "The application requires permission to access files and run commands."
 
@@ -39,33 +39,60 @@ curl -L "$RELEASE_URL" -o "$DMG_FILE"
 
 # Mount the DMG file
 echo "Mounting the disk image..."
-if ! MOUNT_INFO=$(hdiutil attach "$DMG_FILE" -nobrowse); then
-  echo "Error: Failed to mount the disk image."
-  exit 1
-fi
+MOUNT_INFO=$(hdiutil attach "$DMG_FILE" -nobrowse)
+echo "$MOUNT_INFO"
 
 # Extract the mount point from the output
 MOUNT_POINT=$(echo "$MOUNT_INFO" | tail -1 | awk '{print $3}')
 if [ -z "$MOUNT_POINT" ]; then
   echo "Error: Could not determine the mount point."
-  hdiutil detach "$DMG_FILE" -force 2>/dev/null
+  hdiutil detach "$DMG_FILE" -force 2>/dev/null || true
   exit 1
 fi
 
 echo "Mounted at: $MOUNT_POINT"
 
-# List contents of the mounted volume for debugging
-echo "Contents of mounted volume:"
-ls -la "$MOUNT_POINT"
-
-# Find the app in the mounted volume (search more thoroughly)
-echo "Searching for .app files..."
-APP_PATH=$(find "$MOUNT_POINT" -name "*.app" | head -1)
-if [ -z "$APP_PATH" ]; then
-  echo "Error: Could not find any .app in the mounted disk image."
-  hdiutil detach "$MOUNT_POINT" -force 2>/dev/null
-  exit 1
+# Check if the mount point exists
+if [ ! -d "$MOUNT_POINT" ]; then
+  echo "Error: Mount point directory does not exist."
+  # Try to find any mounted volumes that might contain our app
+  echo "Looking for mounted volumes..."
+  ls -la /Volumes/
+  
+  # Try to find the app in any volume
+  for vol in /Volumes/*; do
+    echo "Checking $vol for .app files..."
+    ls -la "$vol" 2>/dev/null || true
+    
+    # Look for any .app files
+    APP_PATH=$(find "$vol" -name "*.app" -maxdepth 2 2>/dev/null | head -1)
+    if [ -n "$APP_PATH" ]; then
+      echo "Found app at: $APP_PATH"
+      MOUNT_POINT="$vol"
+      break
+    fi
+  done
+  
+  if [ -z "$APP_PATH" ]; then
+    echo "Error: Could not find any .app in mounted volumes."
+    exit 1
+  fi
+else
+  # List contents of the mounted volume
+  echo "Contents of $MOUNT_POINT:"
+  ls -la "$MOUNT_POINT" || true
+  
+  # Find the app in the mounted volume
+  echo "Searching for .app files in $MOUNT_POINT..."
+  APP_PATH=$(find "$MOUNT_POINT" -name "*.app" -maxdepth 2 2>/dev/null | head -1)
+  if [ -z "$APP_PATH" ]; then
+    echo "Error: Could not find any .app in the mounted disk image."
+    hdiutil detach "$MOUNT_POINT" -force 2>/dev/null || true
+    exit 1
+  fi
 fi
+
+echo "Found app at: $APP_PATH"
 
 # Extract just the app name from the path
 APP_NAME=$(basename "$APP_PATH")
