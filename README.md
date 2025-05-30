@@ -127,7 +127,7 @@ Based on the current `server-config.json`, here are the available configuration 
 | `displayName` | string | Human-readable name shown in the UI |
 | `description` | string | Detailed description of the server |
 | `docsUrl` | string | URL to the server's documentation |
-| `dockerWrapper` | boolean | Whether to use a Docker wrapper for GitHub Container Registry authentication |
+| `dockerWrapper` | boolean | Whether to use a Docker wrapper for GitHub Container Registry authentication, must be paired with `GITHUB_PERSONAL_ACCESS_TOKEN` in the env |
 | `mcpConfig` | object | Configuration for running the MCP server |
 | `env` | object | Environment variables for the server |
 | `prerequisites` | string[] | Required prerequisites for the server |
