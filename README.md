@@ -203,7 +203,8 @@ For servers that need to be cloned from a repository and run locally:
 "localSetup": {
   "repo": "https://github.com/org/repo.git",
   "command": "node",
-  "entryPoint": "build/index.js"
+  "entryPoint": "build/index.js",
+  "buildCommand": "npm"
 },
 "env": {
   "API_TOKEN": {
