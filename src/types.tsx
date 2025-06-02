@@ -10,6 +10,7 @@ export type ServerConfig = {
 	description: string;
 	docsUrl: string;
 	dockerWrapper: boolean;
+	dockerImage: string;
 	mcpConfig: MCPServerConfig;
 	env: Record<string, EnvVariable>;
 	prerequisites?: string[];

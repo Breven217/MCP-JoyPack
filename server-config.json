@@ -4,17 +4,12 @@
 		"displayName": "Joyful MySQL",
 		"description": "A Model Context Protocol (MCP) server that allows AI assistants like Cascade to interact with both local and remote MySQL databases.",
 		"docsUrl": "https://github.com/breven217/joyfulsql_mcp",
-		"mcpConfig": {
-			"command": "docker",
-			"disabledTools": [],
-			"args": [
-				"run",
-				"--rm",
-				"-i",
-				"--env-file",
-				"~/.mcp/mysql.env",
-				"ghcr.io/breven217/joyfulsql_mcp:latest"
-			]
+		"prerequisites": ["node"],
+		"localSetup": {
+			"repo": "https://github.com/Breven217/JoyfulSQL_MCP.git",
+			"command": "node",
+			"buildCommand": "npm",
+			"entryPoint": "build/index.js"
 		},
 		"env": {
 			"LOCAL_HOST": {
@@ -71,7 +66,7 @@
 		"docsUrl": "https://github.com/github/github-mcp-server",
 		"mcpConfig": {
 			"command": "docker",
-			"disabledTools": [],
+			"disabledTools": ["create_repository", "delete_file", "fork_repository", "get_code_scanning_alert", "list_code_scanning_alerts", "get_secret_scanning_alert", "get_tag", "list_secret_scanning_alerts", "list_tags", "manage_notification_subscription", "manage_repository_notification_subscription", "request_copilot_review"],
 			"args": [
 				"run",
 				"-i",
@@ -150,6 +145,7 @@
 		"description": "This is a small project that implements the MCP protocol and provides tools to interact with our internal tools.\n\nThe goal of this project is to allow models access to internal data from anywhere possible. For example, if we have a design doc in Slite, we want the LLM to read it so that it's generated responses take into account the design doc.",
 		"docsUrl": "https://github.com/BambooHR/mcp-bamboohr",
 		"dockerWrapper": true,
+		"dockerImage": "ghcr.io/bamboohr/mcp-bamboohr:latest",
 		"env": {
 			"SLITE_API_KEY": {
 				"type": "password",
